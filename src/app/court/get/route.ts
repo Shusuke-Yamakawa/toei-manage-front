@@ -1,7 +1,6 @@
-import { NextRequest } from 'next/server';
 import { login } from '@/src/app/_utils/login';
 
-export async function GET(request: NextRequest) {
+export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get('id') || undefined;
   const password = searchParams.get('password') || undefined;
