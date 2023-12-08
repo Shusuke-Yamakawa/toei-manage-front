@@ -1,6 +1,6 @@
 import { login } from '@/src/app/_utils/login';
 
-export const dynamic = 'auto';
+export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);

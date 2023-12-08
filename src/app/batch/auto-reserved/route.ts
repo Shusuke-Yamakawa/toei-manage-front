@@ -10,7 +10,7 @@ import { login } from '@/src/app/_utils/login';
 import { getHolidays } from '@/src/app/_utils/date';
 import { notify_line } from '@/src/app/_utils/line';
 
-export const dynamic = 'auto';
+export const dynamic = 'force-dynamic';
 
 const TARGET_COURT = [
   '井の頭恩賜公園',
