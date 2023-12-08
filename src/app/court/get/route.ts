@@ -5,7 +5,5 @@ export async function GET(request: Request) {
   const id = searchParams.get('id') || undefined;
   const password = searchParams.get('password') || undefined;
   // DBから取得したユーザーIDとパスワードを渡す
-  login(id, password);
-
-  return Response.json({ message: 'Hello world' });
+  // login(id, password);
 }

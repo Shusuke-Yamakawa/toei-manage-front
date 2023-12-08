@@ -286,5 +286,7 @@ ${TOEI_URL}`;
   }
   // クローズさせる
   await browser.close();
-  return Response.json({ message: msg });
+  return new Response(JSON.stringify({ message: msg }), {
+    headers: { 'Content-Type': 'application/json' },
+  });
 }
