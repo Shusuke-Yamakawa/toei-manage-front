@@ -284,10 +284,7 @@ ${TOEI_URL}`;
     msg += await search_by_target_day(page, fromTime!, toTime!, nextMonthYear, nextMonth);
     msg += await post_process(page, msg, fromTime!, toTime!, nextMonthYear, nextMonth, false);
   }
-  // DBから取得したユーザーIDとパスワードを渡す
-  // login();
-
   // クローズさせる
-  // await browser.close();
+  await browser.close();
   return Response.json({ message: msg });
 }
