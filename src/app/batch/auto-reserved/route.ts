@@ -10,7 +10,7 @@ import { login } from '@/src/app/_utils/login';
 import { getHolidays } from '@/src/app/_utils/date';
 import { notify_line } from '@/src/app/_utils/line';
 
-export const runtime = 'nodejs';
+export const dynamic = 'auto';
 
 const TARGET_COURT = [
   '井の頭恩賜公園',
@@ -28,7 +28,7 @@ const RETRY_USER_ID = '86329044';
 const RETRY_PASSWD = '19870513';
 
 const GET_LIMIT_DAY = dayjs().add(4, 'day');
-const NOTIFY_OPEN_COURT = dayjs().add(1, 'day');
+const NOTIFY_OPEN_COURT = dayjs().add(2, 'day');
 
 const TOEI_URL = 'https://yoyaku.sports.metro.tokyo.lg.jp/';
 let getDay: number = 0;
@@ -100,7 +100,6 @@ const search_open_court = async (
   day: number
 ) => {
   const emptyCourts = await search_day_time(page, fromTime, toTime, year, month, day);
-  console.log('emptyCourts: ', emptyCourts);
   const week = await page.$eval('#weekLabel--', (item) => item.textContent);
   let msg = await write_open_court(day, emptyCourts, week);
   // 次のページがある場合実行する
@@ -132,7 +131,7 @@ const search_by_target_day = async (
 ) => {
   const targetDayList = getHolidays(year, month, NOTIFY_OPEN_COURT);
   // テスト用
-  targetDayList.unshift(13);
+  // targetDayList.unshift(13);
   console.log('targetDayList: ', targetDayList);
   let msg = '';
   for (const d of targetDayList) {
