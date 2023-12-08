@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 import Holidays from 'date-holidays';
 
-export const getHolidays = (year: number, month: number, day: number) => {
+export const getHolidays = (year: number, month: number, limitDay: dayjs.Dayjs) => {
   const holidays = new Holidays('JP');
   const result = [];
 
@@ -15,7 +15,7 @@ export const getHolidays = (year: number, month: number, day: number) => {
       (holidays.isHoliday(date.toDate()) && month === 12 && date.date() !== 25) ||
       (month === 12 && date.date() === 29) ||
       (month === 12 && date.date() === 30);
-    if (date.date() >= day + 2 && (isWeekend || isHoliday)) {
+    if (date.isAfter(limitDay) && (isWeekend || isHoliday)) {
       result.push(date.date());
     }
   }

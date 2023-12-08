@@ -1,16 +1,14 @@
 'use server';
 
-import puppeteer from 'puppeteer';
+import { Page } from 'puppeteer';
+import { sleep } from '@/src/app/_utils/util';
 
-export const login = async (userId: string = '86329044', password: string = '19870513') => {
+export const login = async (
+  page: Page,
+  userId: string = '86329044',
+  password: string = '19870513'
+) => {
   try {
-    const browser = await puppeteer.launch({
-      headless: 'new',
-      // headless: false,
-      // slowMo: 50,
-      // devtools: true,
-    });
-    const page = await browser.newPage();
     await page.goto('https://yoyaku.sports.metro.tokyo.lg.jp/user/view/user/homeIndex.html');
     await Promise.all([
       // 画面遷移まで待機する
@@ -20,12 +18,19 @@ export const login = async (userId: string = '86329044', password: string = '198
     console.log(`ログイン処理開始: ${userId}/${password}`);
     await page.type('#userid', userId);
     await page.type('#passwd', password);
-    // sleepいるかも
-    await page.click('#login');
-    // DBから取得したユーザー名を返す？
-
-    await browser.close();
+    await sleep(3000);
+    await page.click('#cookieCheck');
+    await Promise.all([
+      // 画面遷移まで待機する
+      page.waitForNavigation(),
+      page.click('#login'),
+    ]);
+    // ログイン確認
+    const isElementExist = (await page.$('input[value="ログアウト"]')) !== null;
+    if (!isElementExist) {
+      console.log('ログイン失敗');
+    }
   } catch (error) {
-    console.error(`エラーが発生しました: ${error}`);
+    console.error(`ログイン失敗: ${error}`);
   }
 };
