@@ -1,8 +1,10 @@
 import axios from 'axios';
 import qs from 'qs';
 
-export const notify_line = async (msg: string) => {
-  const LINE_TOKEN = 'Qeuzd60OWvkoG0ZbctkpkkWFb9fUmYJYcTDBujxypsV';
+export const notify_line = async (
+  msg: string,
+  token = 'QUGBKHPEM8JtPKI1mTMrkw8Cxk6KUBogr2poZhEQeva'
+) => {
   const BASE_URL = 'https://notify-api.line.me';
   const PATH = '/api/notify';
   const config = {
@@ -11,7 +13,7 @@ export const notify_line = async (msg: string) => {
     method: 'post',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
-      Authorization: `Bearer ${LINE_TOKEN}`,
+      Authorization: `Bearer ${token}`,
     },
     data: qs.stringify({
       message: `${msg}\nM1 社用`,

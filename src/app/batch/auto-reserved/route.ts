@@ -7,6 +7,7 @@ import puppeteer, { Page } from 'puppeteer';
 import { login } from '@/src/app/_utils/login';
 import { getHolidays } from '@/src/app/_utils/date';
 import { notify_line } from '@/src/app/_utils/line';
+import { TOEI_URL, toeiPage } from '@/src/app/_lib/puppeteer';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,7 +32,6 @@ const RETRY_PASSWD = '19870513';
 const GET_LIMIT_DAY = dayjs().add(5, 'day');
 const NOTIFY_OPEN_COURT = dayjs().add(5, 'day');
 
-const TOEI_URL = 'https://yoyaku.sports.metro.tokyo.lg.jp/';
 let getDay: number = 0;
 
 dayjs.extend(utc);
@@ -165,11 +165,16 @@ const reserveCourt = async (
         const applyConf = await page.$$('#apply');
         if (applyConf.length > 0) {
           msg += '\n重複してるのでリトライ';
-          await page.click('input[value="ログアウト"]');
+          await Promise.all([
+            // 画面遷移まで待機する
+            page.waitForNavigation(),
+            await page.click('input[value="ログアウト"]'),
+          ]);
           // eslint-disable-next-line @typescript-eslint/no-use-before-define
           msg = await reserveCourtController(page, msg, fromTime, toTime, year, month, true);
         }
         msg += `\n${courtName}を予約`;
+        // TODO DBに登録する
         return msg;
       } catch (error) {
         msg += '\n予約取れず';
@@ -234,20 +239,12 @@ const checkAndReserveAvailableCourt = async (
   if (targetDay.isAfter(GET_LIMIT_DAY)) {
     msg = await reserveCourtController(page, msg, fromTime, toTime, year, month, retry);
   }
-  await notify_line(msg);
+  await notify_line(msg, 'Qeuzd60OWvkoG0ZbctkpkkWFb9fUmYJYcTDBujxypsV');
   return msg;
 };
 
 export async function GET(request: Request) {
-  const browser = await puppeteer.launch({
-    headless: 'new',
-    // headless: false,
-    // slowMo: 50,
-    // devtools: true,
-  });
-  const page = await browser.newPage();
-  await page.goto(`${TOEI_URL}user/view/user/homeIndex.html`);
-
+  const { page, browser } = await toeiPage();
   const { searchParams } = new URL(request.url);
   const fromTime = searchParams.get('from');
   const toTime = searchParams.get('to');

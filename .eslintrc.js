@@ -14,5 +14,6 @@ module.exports = {
     'react/react-in-jsx-scope': 'off',
     'import/extensions': 'off',
     'no-await-in-loop': 'off',
+    'no-plusplus': 'off',
   },
 };
