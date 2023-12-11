@@ -1,8 +1,6 @@
 /* eslint-disable max-len */
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-restricted-syntax */
-/* eslint-disable no-await-in-loop */
-// eslint-disable-next-line no-restricted-syntax
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import puppeteer, { Page } from 'puppeteer';
@@ -24,11 +22,14 @@ const TARGET_COURT = [
 const USER_ID = '86560751';
 const PASSWD = '19550223';
 
+// const USER_ID = '87088869';
+// const PASSWD = '19900818';
+
 const RETRY_USER_ID = '86329044';
 const RETRY_PASSWD = '19870513';
 
-const GET_LIMIT_DAY = dayjs().add(4, 'day');
-const NOTIFY_OPEN_COURT = dayjs().add(2, 'day');
+const GET_LIMIT_DAY = dayjs().add(5, 'day');
+const NOTIFY_OPEN_COURT = dayjs().add(5, 'day');
 
 const TOEI_URL = 'https://yoyaku.sports.metro.tokyo.lg.jp/';
 let getDay: number = 0;
@@ -42,7 +43,7 @@ const targetCourt = (openCourt: string): boolean => {
   return false;
 };
 
-const write_open_court = async (
+const isTargetCourtAvailable = async (
   day: number,
   emptyCourts: (string | null)[],
   week: string | null
@@ -60,7 +61,7 @@ const write_open_court = async (
   return '';
 };
 
-const search_day_time = async (
+const searchOpenCourt = async (
   page: Page,
   fromTime: string,
   toTime: string,
@@ -91,38 +92,7 @@ const search_day_time = async (
   return emptyCourts;
 };
 
-const search_open_court = async (
-  page: Page,
-  fromTime: string,
-  toTime: string,
-  year: number,
-  month: number,
-  day: number
-) => {
-  const emptyCourts = await search_day_time(page, fromTime, toTime, year, month, day);
-  const week = await page.$eval('#weekLabel--', (item) => item.textContent);
-  let msg = await write_open_court(day, emptyCourts, week);
-  // 次のページがある場合実行する
-  while (true) {
-    try {
-      await Promise.all([
-        // 画面遷移まで待機する
-        page.waitForNavigation(),
-        page.click('#goNextPager'),
-      ]);
-      const emptyCourtsNextPage = await page.$$eval('#bnamem', (elements) =>
-        elements.map((element) => element.textContent)
-      );
-      msg += await write_open_court(day, emptyCourtsNextPage, week);
-    } catch (NoSuchElementException) {
-      // 次のページが押せなくなったらループから抜ける
-      break;
-    }
-  }
-  return msg;
-};
-
-const search_by_target_day = async (
+const searchByTargetDay = async (
   page: Page,
   fromTime: string,
   toTime: string,
@@ -133,19 +103,35 @@ const search_by_target_day = async (
   // テスト用
   // targetDayList.unshift(13);
   let msg = '';
-  for (const d of targetDayList) {
-    const result = await search_open_court(page, fromTime, toTime, year, month, d);
-    msg += result;
-
-    if (result.indexOf('空きコートあり！！') !== -1) {
+  for (const day of targetDayList) {
+    const emptyCourts = await searchOpenCourt(page, fromTime, toTime, year, month, day);
+    const week = await page.$eval('#weekLabel--', (item) => item.textContent);
+    msg = await isTargetCourtAvailable(day, emptyCourts, week);
+    // 次のページがある場合実行する
+    while (true) {
+      try {
+        await Promise.all([
+          // 画面遷移まで待機する
+          page.waitForNavigation(),
+          page.click('#goNextPager'),
+        ]);
+        const emptyCourtsNextPage = await page.$$eval('#bnamem', (elements) =>
+          elements.map((element) => element.textContent)
+        );
+        msg += await isTargetCourtAvailable(day, emptyCourtsNextPage, week);
+      } catch (NoSuchElementException) {
+        // 次のページが押せなくなったらループから抜ける
+        break;
+      }
+    }
+    if (msg.indexOf('空きコートあり！！') !== -1) {
       return msg;
     }
   }
-
   return msg;
 };
 
-const reserve_court = async (
+const reserveCourt = async (
   page: Page,
   msg: string,
   fromTime: string,
@@ -181,7 +167,7 @@ const reserve_court = async (
           msg += '\n重複してるのでリトライ';
           await page.click('input[value="ログアウト"]');
           // eslint-disable-next-line @typescript-eslint/no-use-before-define
-          msg = await now_reserve(page, msg, fromTime, toTime, year, month, true);
+          msg = await reserveCourtController(page, msg, fromTime, toTime, year, month, true);
         }
         msg += `\n${courtName}を予約`;
         return msg;
@@ -194,7 +180,7 @@ const reserve_court = async (
   return msg;
 };
 
-const now_reserve = async (
+const reserveCourtController = async (
   page: Page,
   msg: string,
   fromTime: string,
@@ -211,8 +197,8 @@ const now_reserve = async (
     password = RETRY_PASSWD;
   }
   await login(page, userId, password);
-  const emptyCourts = await search_day_time(page, fromTime, toTime, year, month, getDay);
-  msg = await reserve_court(page, msg, fromTime, toTime, year, month, emptyCourts);
+  const emptyCourts = await searchOpenCourt(page, fromTime, toTime, year, month, getDay);
+  msg = await reserveCourt(page, msg, fromTime, toTime, year, month, emptyCourts);
   // 次のページがある場合実行する
   while (true) {
     try {
@@ -224,7 +210,7 @@ const now_reserve = async (
       const emptyCourtsNextPage = await page.$$eval('#bnamem', (elements) =>
         elements.map((element) => element.textContent)
       );
-      msg = await reserve_court(page, msg, fromTime, toTime, year, month, emptyCourtsNextPage);
+      msg = await reserveCourt(page, msg, fromTime, toTime, year, month, emptyCourtsNextPage);
     } catch (NoSuchElementException) {
       // 次のページが押せなくなったらループから抜ける
       break;
@@ -234,7 +220,7 @@ const now_reserve = async (
   return msg;
 };
 
-const post_process = async (
+const checkAndReserveAvailableCourt = async (
   page: Page,
   msg: string,
   fromTime: string,
@@ -244,10 +230,9 @@ const post_process = async (
   retry: boolean
 ) => {
   if (msg.indexOf('空きコートあり！！') === -1) return msg;
-  console.log('post_process動きます！');
   const targetDay = dayjs(`${year}-${month}-${getDay}`);
   if (targetDay.isAfter(GET_LIMIT_DAY)) {
-    msg = await now_reserve(page, msg, fromTime, toTime, year, month, retry);
+    msg = await reserveCourtController(page, msg, fromTime, toTime, year, month, retry);
   }
   await notify_line(msg);
   return msg;
@@ -272,18 +257,25 @@ export async function GET(request: Request) {
   const day = date.date();
   let msg = `今月${fromTime}-${toTime}時の空きテニスコート
 ${TOEI_URL}`;
-  msg += await search_by_target_day(page, fromTime!, toTime!, year, month);
-  msg = await post_process(page, msg, fromTime!, toTime!, year, month, false);
-  console.log('最終メッセージ', msg);
-
+  msg += await searchByTargetDay(page, fromTime!, toTime!, year, month);
+  msg = await checkAndReserveAvailableCourt(page, msg, fromTime!, toTime!, year, month, false);
   if (day > 21) {
-    console.log('day is over 21');
     msg += `来月${fromTime}-${toTime}時の空きテニスコート`;
     const nextMonthYear = month === 12 ? year + 1 : year;
     const nextMonth = month === 12 ? 1 : month + 1;
-    msg += await search_by_target_day(page, fromTime!, toTime!, nextMonthYear, nextMonth);
-    msg += await post_process(page, msg, fromTime!, toTime!, nextMonthYear, nextMonth, false);
+    msg += await searchByTargetDay(page, fromTime!, toTime!, nextMonthYear, nextMonth);
+    msg = await checkAndReserveAvailableCourt(
+      page,
+      msg,
+      fromTime!,
+      toTime!,
+      nextMonthYear,
+      nextMonth,
+      false
+    );
   }
+  console.log('最終メッセージ', msg);
+
   // クローズさせる
   await browser.close();
   return new Response(JSON.stringify({ message: msg }), {
