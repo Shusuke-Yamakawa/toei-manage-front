@@ -1,4 +1,5 @@
 import { prisma } from '@/src/app/_lib/prisma';
+import { currentDate } from '@/src/app/_utils/date';
 
 export type GetCourt = {
   card_id: string;
@@ -11,3 +12,50 @@ export type GetCourt = {
 };
 
 export const createGetCourt = async (params: GetCourt) => prisma.getCourt.create({ data: params });
+
+export const findGetCourtOverCurrentCourt = async () => {
+  const date = currentDate();
+  const month = date.month() + 1;
+  let nextMonths = month;
+  if (month === 12) {
+    nextMonths = 1;
+  } else {
+    nextMonths = month + 1;
+  }
+  const day = date.date();
+  return prisma.getCourt.findMany({
+    where: {
+      AND: [
+        {
+          year: {
+            gte: date.year(),
+          },
+        },
+        {
+          OR: [
+            {
+              month: {
+                gte: month,
+              },
+            },
+            {
+              month: nextMonths,
+            },
+          ],
+        },
+        {
+          OR: [
+            {
+              day: {
+                gte: day,
+              },
+            },
+            {
+              month: nextMonths,
+            },
+          ],
+        },
+      ],
+    },
+  });
+};
