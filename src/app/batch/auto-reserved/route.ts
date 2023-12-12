@@ -7,6 +7,7 @@ import { currentDate, getHolidays } from '@/src/app/_utils/date';
 import { notify_line } from '@/src/app/_utils/line';
 import { TOEI_URL, toeiPage } from '@/src/app/_lib/puppeteer';
 import dayjs from '@/src/app/_lib/dayjs';
+import { createGetCourt } from '@/src/app/_lib/db/getCourt';
 
 export const dynamic = 'force-dynamic';
 
@@ -135,7 +136,8 @@ const reserveCourt = async (
   toTime: string,
   year: number,
   month: number,
-  emptyCourts: (string | null)[]
+  emptyCourts: (string | null)[],
+  userId: string
 ) => {
   if (emptyCourts.length === 0) return msg;
   for (const emptyCourt of emptyCourts) {
@@ -171,7 +173,16 @@ const reserveCourt = async (
           msg = await reserveCourtController(page, msg, fromTime, toTime, year, month, true);
         }
         msg += `\n${courtName}を予約`;
-        // TODO DBに登録する
+        // DBに登録する
+        await createGetCourt({
+          card_id: userId,
+          year,
+          month,
+          day: getDay,
+          from_time: Number(fromTime),
+          to_time: Number(toTime),
+          court: courtName!,
+        });
         return msg;
       } catch (error) {
         msg += '\n予約取れず';
@@ -200,7 +211,7 @@ const reserveCourtController = async (
   }
   await login(page, userId, password);
   const emptyCourts = await searchOpenCourt(page, fromTime, toTime, year, month, getDay);
-  msg = await reserveCourt(page, msg, fromTime, toTime, year, month, emptyCourts);
+  msg = await reserveCourt(page, msg, fromTime, toTime, year, month, emptyCourts, userId);
   // 次のページがある場合実行する
   while (true) {
     try {
@@ -212,7 +223,16 @@ const reserveCourtController = async (
       const emptyCourtsNextPage = await page.$$eval('#bnamem', (elements) =>
         elements.map((element) => element.textContent)
       );
-      msg = await reserveCourt(page, msg, fromTime, toTime, year, month, emptyCourtsNextPage);
+      msg = await reserveCourt(
+        page,
+        msg,
+        fromTime,
+        toTime,
+        year,
+        month,
+        emptyCourtsNextPage,
+        userId
+      );
     } catch (NoSuchElementException) {
       // 次のページが押せなくなったらループから抜ける
       break;

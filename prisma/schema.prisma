@@ -12,7 +12,7 @@ datasource db {
   // 必要だったら追加する（外部制約サポートしたので不要か？） referentialIntegrity = "prisma"
 }
 
-model Inquiry {
+model getCourt {
   id Int @default(autoincrement()) @id
   card_id String
   year Int
@@ -20,4 +20,5 @@ model Inquiry {
   day Int
   from_time Int
   to_time Int
+  court String
 }
