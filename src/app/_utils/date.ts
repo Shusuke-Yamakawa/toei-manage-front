@@ -1,5 +1,5 @@
-import dayjs from 'dayjs';
 import Holidays from 'date-holidays';
+import dayjs from '@/src/app/_lib/dayjs';
 
 export const getHolidays = (year: number, month: number, limitDay: dayjs.Dayjs) => {
   const holidays = new Holidays('JP');
@@ -22,3 +22,5 @@ export const getHolidays = (year: number, month: number, limitDay: dayjs.Dayjs) 
 
   return result;
 };
+
+export const currentDate = () => dayjs().tz();

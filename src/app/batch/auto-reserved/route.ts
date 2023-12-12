@@ -1,13 +1,12 @@
 /* eslint-disable max-len */
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-restricted-syntax */
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-import puppeteer, { Page } from 'puppeteer';
+import { Page } from 'puppeteer';
 import { login } from '@/src/app/_utils/login';
-import { getHolidays } from '@/src/app/_utils/date';
+import { currentDate, getHolidays } from '@/src/app/_utils/date';
 import { notify_line } from '@/src/app/_utils/line';
 import { TOEI_URL, toeiPage } from '@/src/app/_lib/puppeteer';
+import dayjs from '@/src/app/_lib/dayjs';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,12 +28,10 @@ const PASSWD = '19550223';
 const RETRY_USER_ID = '86329044';
 const RETRY_PASSWD = '19870513';
 
-const GET_LIMIT_DAY = dayjs().add(5, 'day');
-const NOTIFY_OPEN_COURT = dayjs().add(5, 'day');
+const GET_LIMIT_DAY = currentDate().add(5, 'day');
+const NOTIFY_OPEN_COURT = currentDate().add(4, 'day');
 
 let getDay: number = 0;
-
-dayjs.extend(utc);
 
 const targetCourt = (openCourt: string): boolean => {
   if (TARGET_COURT.includes(openCourt)) {
@@ -101,7 +98,7 @@ const searchByTargetDay = async (
 ) => {
   const targetDayList = getHolidays(year, month, NOTIFY_OPEN_COURT);
   // テスト用
-  // targetDayList.unshift(13);
+  // targetDayList.unshift(20);
   let msg = '';
   for (const day of targetDayList) {
     const emptyCourts = await searchOpenCourt(page, fromTime, toTime, year, month, day);
@@ -248,7 +245,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const fromTime = searchParams.get('from');
   const toTime = searchParams.get('to');
-  const date = dayjs();
+  const date = currentDate();
   const year = date.year();
   const month = date.month() + 1; // month()の結果は0から始まるため、1を追加します
   const day = date.date();
