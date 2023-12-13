@@ -3,7 +3,7 @@
 
 generator client {
   provider = "prisma-client-js"
-  previewFeatures = ["referentialIntegrity"]
+  // 現バージョンでは不要そう previewFeatures = ["referentialIntegrity"]
 }
 
 datasource db {

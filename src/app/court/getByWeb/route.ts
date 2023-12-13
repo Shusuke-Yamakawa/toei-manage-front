@@ -4,6 +4,12 @@ import { Page } from 'puppeteer';
 import { toeiPage } from '@/src/app/_lib/puppeteer';
 import { login } from '@/src/app/_utils/login';
 import { notify_line } from '@/src/app/_utils/line';
+import { currentDate } from '@/src/app/_utils/date';
+import {
+  createGetCourt,
+  deleteGetCourtBySpecialIds,
+  deleteGetCourtCurrentMonthBySpecialIds,
+} from '@/src/app/_lib/db/getCourt';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,13 +19,14 @@ const USER_LIST = [
   { id: '86329044', password: '19870513' },
 ];
 
-const getCourtInfo = async (page: Page) => {
+const getCourtInfo = async (page: Page, userId: string) => {
   let msg = '';
   // 取得名の取得
   const getCourts = await page.$$eval('#ymdLabel', (elements) =>
     elements.map((element) => element.textContent)
   );
   for (let i = 0; i < getCourts.length; i++) {
+    // webから取得情報を取得
     const dates = await page.$$eval('#ymdLabel', (elements) =>
       elements.map((element) => element.textContent)
     );
@@ -40,10 +47,23 @@ const getCourtInfo = async (page: Page) => {
     );
     const courtNm = courtNms[i]!;
 
-    msg += `\n${date.slice(5, -1)} ${fromTime.slice(0, -1)}-${toTime.slice(0, -1)} ${courtNm.slice(
-      0,
-      -2
-    )}`;
+    // DBに取得情報を登録
+    const month = date.match(/.*年(\d+)月.*/)![1];
+    const day = date.match(/.*月(\d+)日.*/)![1];
+    const from_time_db = fromTime.match(/(\d+)/)![1];
+    const to_time_db = toTime.match(/(\d+)/)![1];
+    const court = courtNm.slice(0, -2);
+    await createGetCourt({
+      card_id: userId,
+      year: Number(date.slice(0, 4)),
+      month: Number(month),
+      day: Number(day),
+      from_time: Number(from_time_db),
+      to_time: Number(to_time_db),
+      court,
+    });
+
+    msg += `\n${date.slice(5, -1)} ${fromTime.slice(0, -1)}-${toTime.slice(0, -1)} ${court}`;
   }
   return msg;
 };
@@ -51,6 +71,14 @@ const getCourtInfo = async (page: Page) => {
 export async function GET() {
   const { page, browser } = await toeiPage();
   let msg = '【コート取得状況】';
+  // 22日以前であれば、今月のみ削除
+  const day = currentDate().day();
+  console.log('day: ', day);
+  if (day > 21) {
+    await deleteGetCourtBySpecialIds({ cardIds: USER_LIST.map((user) => user.id) });
+  } else {
+    await deleteGetCourtCurrentMonthBySpecialIds({ cardIds: USER_LIST.map((user) => user.id) });
+  }
   for (const user of USER_LIST) {
     await login(page, user.id, user.password);
     await Promise.all([
@@ -59,7 +87,7 @@ export async function GET() {
       page.click('#goRsvStatusList'),
     ]);
     msg += `\n${user.id}`;
-    msg += await getCourtInfo(page);
+    msg += await getCourtInfo(page, user.id);
     while (true) {
       try {
         await Promise.all([
@@ -67,7 +95,7 @@ export async function GET() {
           page.waitForNavigation(),
           page.click('#goNextPager'),
         ]);
-        msg += await getCourtInfo(page);
+        msg += await getCourtInfo(page, user.id);
       } catch (NoSuchElementException) {
         // 次のページが押せなくなったらループから抜ける
         break;
@@ -81,7 +109,7 @@ export async function GET() {
   }
   await browser.close();
   console.log('最終msg: ', msg);
-  await notify_line(msg);
+  // await notify_line(msg);
 
   return new Response(JSON.stringify({ message: msg }), {
     headers: { 'Content-Type': 'application/json' },

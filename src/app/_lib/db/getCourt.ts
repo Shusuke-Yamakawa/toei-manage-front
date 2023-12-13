@@ -11,7 +11,26 @@ export type GetCourt = {
   court: string;
 };
 
+type CardIds = {
+  cardIds: string[];
+};
+
 export const createGetCourt = async (params: GetCourt) => prisma.getCourt.create({ data: params });
+export const deleteGetCourtBySpecialIds = async ({ cardIds }: CardIds) =>
+  prisma.getCourt.deleteMany({
+    where: {
+      card_id: { in: cardIds },
+    },
+  });
+export const deleteGetCourtCurrentMonthBySpecialIds = async ({ cardIds }: CardIds) => {
+  const date = currentDate();
+  const month = date.month() + 1;
+  return prisma.getCourt.deleteMany({
+    where: {
+      AND: [{ card_id: { in: cardIds }, month }],
+    },
+  });
+};
 
 export const findGetCourtOverCurrentCourt = async () => {
   const date = currentDate();

@@ -30,7 +30,7 @@ const RETRY_USER_ID = '86329044';
 const RETRY_PASSWD = '19870513';
 
 const GET_LIMIT_DAY = currentDate().add(5, 'day');
-const NOTIFY_OPEN_COURT = currentDate().add(4, 'day');
+const NOTIFY_OPEN_COURT = currentDate().add(5, 'day');
 
 let getDay: number = 0;
 
@@ -185,6 +185,7 @@ const reserveCourt = async (
         });
         return msg;
       } catch (error) {
+        console.log('予約失敗error: ', error);
         msg += '\n予約取れず';
         return msg;
       }
