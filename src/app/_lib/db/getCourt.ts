@@ -11,11 +11,22 @@ export type GetCourt = {
   court: string;
 };
 
+type Id = {
+  id: number;
+};
+
 type CardIds = {
   cardIds: string[];
 };
 
 export const createGetCourt = async (params: GetCourt) => prisma.getCourt.create({ data: params });
+
+export const deleteGetCourtById = async ({ id }: Id) =>
+  prisma.getCourt.delete({
+    where: {
+      id,
+    },
+  });
 export const deleteGetCourtBySpecialIds = async ({ cardIds }: CardIds) =>
   prisma.getCourt.deleteMany({
     where: {
@@ -76,5 +87,13 @@ export const findGetCourtOverCurrentCourt = async () => {
         },
       ],
     },
+    orderBy: [
+      { year: 'asc' },
+      { month: 'asc' },
+      { day: 'asc' },
+      { from_time: 'asc' },
+      { court: 'asc' },
+      { card_id: 'asc' },
+    ],
   });
 };

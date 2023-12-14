@@ -3,7 +3,6 @@
 import { Page } from 'puppeteer';
 import { toeiPage } from '@/src/app/_lib/puppeteer';
 import { login } from '@/src/app/_utils/login';
-import { notify_line } from '@/src/app/_utils/line';
 import { currentDate } from '@/src/app/_utils/date';
 import {
   createGetCourt,

@@ -1,25 +1,16 @@
-'use client';
-
-import { type NextPage } from 'next';
-import { Button, Flex } from '@mantine/core';
+import { Flex } from '@mantine/core';
 import { Navbar } from '@/src/app/_layouts';
-// import { login } from '@/src/app/_utils/login';
+import { findGetCourtOverCurrentCourt } from '@/src/app/_lib/db/getCourt';
+import { GetCourtList } from '@/src/app/court/_components/GetCourtList';
 
-const getCourtList = () => {
-  fetch('http://localhost:3003/court/get', {
-    method: 'GET',
-  })
-    .then((res) => res.json())
-    .then((data) => console.log(data));
+const CourtPage = async () => {
+  const getCourtList = await findGetCourtOverCurrentCourt();
+  return (
+    <Flex direction="row" gap="md">
+      <Navbar />
+      <GetCourtList data={getCourtList} />
+    </Flex>
+  );
 };
-
-const CourtPage: NextPage = () => (
-  <Flex direction="row" gap="md">
-    <Navbar />
-    <Button onClick={getCourtList} mt="md" variant="light">
-      getCourtList
-    </Button>
-  </Flex>
-);
 
 export default CourtPage;
