@@ -67,7 +67,7 @@ const getCourtInfo = async (page: Page, userId: string) => {
   return msg;
 };
 
-export async function GET() {
+export const getCourt = async () => {
   const { page, browser } = await toeiPage();
   let msg = '【コート取得状況】';
   // 22日以前であれば、今月のみ削除
@@ -110,7 +110,5 @@ export async function GET() {
   console.log('最終msg: ', msg);
   // await notify_line(msg);
 
-  return new Response(JSON.stringify({ message: msg }), {
-    headers: { 'Content-Type': 'application/json' },
-  });
-}
+  return msg;
+};
