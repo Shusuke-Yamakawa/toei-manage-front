@@ -12,6 +12,38 @@ datasource db {
   // 必要だったら追加する（外部制約サポートしたので不要か？） referentialIntegrity = "prisma"
 }
 
+model toei {
+  id Int @default(autoincrement()) @id
+  card_id String
+  password String
+  user_nm String
+  available_flg Boolean
+  note String
+}
+
+model draw {
+  id Int @default(autoincrement()) @id
+  card_id String
+  year Int
+  month Int
+  day Int
+  from_time Int
+  to_time Int
+  court String
+  confirm_flg Boolean
+}
+
+model oddsCourt {
+  id Int @default(autoincrement()) @id
+  year Int
+  month Int
+  day Int
+  from_time Int
+  to_time Int
+  court String
+  odds Int
+}
+
 model getCourt {
   id Int @default(autoincrement()) @id
   card_id String

@@ -43,6 +43,13 @@ export const deleteGetCourtCurrentMonthBySpecialIds = async ({ cardIds }: CardId
   });
 };
 
+export const findGetCourtById = async (id: number) =>
+  prisma.getCourt.findUnique({
+    where: {
+      id,
+    },
+  });
+
 export const findGetCourtOverCurrentCourt = async () => {
   const date = currentDate();
   const month = date.month() + 1;

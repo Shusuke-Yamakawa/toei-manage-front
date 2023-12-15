@@ -4,15 +4,12 @@
 
 import { Button, Checkbox, Flex, Table } from '@mantine/core';
 import { FC, useState } from 'react';
-import { GetCourt, deleteGetCourtById, deleteGetCourtByIds } from '@/src/app/_lib/db/getCourt';
+import axios from 'axios';
+import { GetCourt } from '@/src/app/_lib/db/getCourt';
 
-// const CourtPage = () => {
-//   fetch('http://localhost:3003/court/get', {
-//     method: 'GET',
-//   })
-//     .then((res) => res.json())
-//     .then((data) => console.log(data));
-// };
+const deleteGetCourtById = async (id: number) => {
+  await axios.delete(`http://localhost:3003/court/api/byWeb/${id}`);
+};
 
 type Props = {
   data: ({ id: number } & GetCourt)[];
@@ -22,8 +19,7 @@ export const GetCourtList: FC<Props> = ({ data }) => {
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
   const deleteCourt = async () => {
     for (const id of selectedRows) {
-      // client componentからprismaは使えないので、route handler作ってそれを叩く
-      // await deleteGetCourtById({ id });
+      await deleteGetCourtById(id);
     }
   };
   console.log('selectedRows: ', selectedRows);
