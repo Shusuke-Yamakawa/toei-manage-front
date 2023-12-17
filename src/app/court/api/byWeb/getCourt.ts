@@ -59,7 +59,7 @@ const getCourtInfo = async (page: Page, userId: string) => {
       day: Number(day),
       from_time: Number(from_time_db),
       to_time: Number(to_time_db),
-      court,
+      court: courtNm,
     });
 
     msg += `\n${date.slice(5, -1)} ${fromTime.slice(0, -1)}-${toTime.slice(0, -1)} ${court}`;

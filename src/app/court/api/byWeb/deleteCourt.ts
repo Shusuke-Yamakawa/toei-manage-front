@@ -3,28 +3,107 @@
 import { Page } from 'puppeteer';
 import { toeiPage } from '@/src/app/_lib/puppeteer';
 import { login } from '@/src/app/_utils/login';
-import { currentDate } from '@/src/app/_utils/date';
-import {
-  createGetCourt,
-  deleteGetCourtById,
-  deleteGetCourtBySpecialIds,
-  deleteGetCourtCurrentMonthBySpecialIds,
-  findGetCourtById,
-} from '@/src/app/_lib/db/getCourt';
+import { GetCourt, deleteGetCourtById, findGetCourtById } from '@/src/app/_lib/db/getCourt';
+import { findCardById } from '@/src/app/_lib/db/card';
 
 export const dynamic = 'force-dynamic';
 
+const getCourtCancel = async (page: Page, getCourt: GetCourt, id: number) => {
+  // 取得名の取得
+  const getCourtDbKey = `${getCourt.month}${getCourt.day}${getCourt.from_time}${getCourt.to_time}${getCourt.court}`;
+  console.log('getCourtDbKey: ', getCourtDbKey);
+  const getCourts = await page.$$eval('#ymdLabel', (elements) =>
+    elements.map((element) => element.textContent)
+  );
+  for (let i = 0; i < getCourts.length; i++) {
+    // webから取得情報を取得
+    const dates = await page.$$eval('#ymdLabel', (elements) =>
+      elements.map((element) => element.textContent)
+    );
+    const date = dates[i]!;
+
+    const fromTimes = await page.$$eval('#stimeLabel', (elements) =>
+      elements.map((element) => element.textContent)
+    );
+    const fromTime = fromTimes[i]!;
+
+    const toTimes = await page.$$eval('#etimeLabel', (elements) =>
+      elements.map((element) => element.textContent)
+    );
+    const toTime = toTimes[i]!;
+
+    const courtNms = await page.$$eval('#bnamem', (elements) =>
+      elements.map((element) => element.textContent)
+    );
+    const courtNm = courtNms[i]!;
+
+    // DBの登録情報と合わせる登録
+    const month = date.match(/.*年(\d+)月.*/)![1];
+    const day = date.match(/.*月(\d+)日.*/)![1];
+    const from_time_db = fromTime.match(/(\d+)/)![1];
+    const to_time_db = toTime.match(/(\d+)/)![1];
+    const courtKey = month + day + from_time_db + to_time_db + courtNm;
+    console.log('courtKey: ', courtKey);
+    if (courtKey === getCourtDbKey) {
+      console.log('一致したのでキャンセルします');
+      const doSelectElements = await page.$$('#doSelect');
+      await Promise.all([
+        // 画面遷移まで待機する
+        page.waitForNavigation(),
+        await doSelectElements[i].click(),
+      ]);
+      // ダイアログでOKの処理はダイアログが出る直前に記述する
+      page.once('dialog', async (dialog) => {
+        await dialog.accept();
+      });
+      await page.click('#doDelete');
+      console.log('キャンセル完了');
+      await deleteGetCourtById({ id });
+      return true;
+    }
+  }
+
+  return false;
+};
+
 export const deleteCourt = async (id: number) => {
   const { page, browser } = await toeiPage();
-  const msg = '【削除コート】';
   const getCourt = await findGetCourtById(id);
-  // await login(page, getCourt?.card_id, user.password);
-  console.log('getCourt: ', getCourt);
-  console.log('最終msg: ', msg);
+  const cardId = getCourt?.card_id!;
+  const card = await findCardById(cardId);
+  await login(page, cardId, card?.password);
+  await Promise.all([
+    // 画面遷移まで待機する
+    page.waitForNavigation(),
+    page.click('#goRsvStatusList'),
+  ]);
+  let result = false;
+  result = await getCourtCancel(page, getCourt!, id);
 
-  // DBから削除
-  // await deleteGetCourtById({ id });
-  // await notify_line(msg);
+  if (!result) {
+    while (true) {
+      try {
+        await Promise.all([
+          // 画面遷移まで待機する
+          page.waitForNavigation(),
+          page.click('#goNextPager'),
+        ]);
+        result = await getCourtCancel(page, getCourt!, id);
+      } catch (NoSuchElementException) {
+        // 次のページが押せなくなったらループから抜ける
+        break;
+      }
+    }
+  }
 
-  return msg;
+  await Promise.all([
+    // 画面遷移まで待機する
+    page.waitForNavigation(),
+    await page.click('input[value="ログアウト"]'),
+  ]);
+
+  // クローズさせる
+  await browser.close();
+
+  return result;
 };

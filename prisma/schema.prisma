@@ -12,12 +12,11 @@ datasource db {
   // 必要だったら追加する（外部制約サポートしたので不要か？） referentialIntegrity = "prisma"
 }
 
-model toei {
-  id Int @default(autoincrement()) @id
-  card_id String
+model card {
+  card_id String @id
   password String
   user_nm String
-  available_flg Boolean
+  available_flg Boolean @default(true)
   note String
 }
 
