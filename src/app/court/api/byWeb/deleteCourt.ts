@@ -5,6 +5,7 @@ import { toeiPage } from '@/src/app/_lib/puppeteer';
 import { login } from '@/src/app/_utils/login';
 import { GetCourt, deleteGetCourtById, findGetCourtById } from '@/src/app/_lib/db/getCourt';
 import { findCardById } from '@/src/app/_lib/db/card';
+import { notify_line } from '@/src/app/_utils/line';
 
 export const dynamic = 'force-dynamic';
 
@@ -58,6 +59,7 @@ const getCourtCancel = async (page: Page, getCourt: GetCourt, id: number) => {
       });
       await page.click('#doDelete');
       console.log('キャンセル完了');
+      await notify_line(`【キャンセル完了】\n ${courtKey}`);
       await deleteGetCourtById({ id });
       return true;
     }
