@@ -5,7 +5,7 @@ import { Page } from 'puppeteer';
 import { login } from '@/src/app/_utils/login';
 import { currentDate, getHolidays } from '@/src/app/_utils/date';
 import { notify_line } from '@/src/app/_utils/line';
-import { TOEI_URL, toeiPage } from '@/src/app/_lib/puppeteer';
+import { toeiPage } from '@/src/app/_lib/puppeteer';
 import dayjs from '@/src/app/_lib/dayjs';
 import { createGetCourt } from '@/src/app/_lib/db/getCourt';
 
@@ -52,7 +52,7 @@ const isTargetCourtAvailable = async (
       if (targetCourt(emptyCourt!)) {
         console.log('空きコート: ', emptyCourt);
         getDay = day;
-        return `\n${day}( ${week}) : ${emptyCourt}\n空きコートあり！！`;
+        return `\n${day}(${week}) : ${emptyCourt}\n空きコートあり！！`;
       }
     }
   }
@@ -272,7 +272,7 @@ export async function GET(request: Request) {
   const month = date.month() + 1; // month()の結果は0から始まるため、1を追加します
   const day = date.date();
   let msg = `今月${fromTime}-${toTime}時の空きテニスコート
-${TOEI_URL}`;
+${NOTIFY_OPEN_COURT.toDate()}`;
   msg += await searchByTargetDay(page, fromTime!, toTime!, year, month);
   msg = await checkAndReserveAvailableCourt(page, msg, fromTime!, toTime!, year, month, false);
   if (day > 21) {
