@@ -171,6 +171,7 @@ const reserveCourt = async (
           ]);
           // eslint-disable-next-line @typescript-eslint/no-use-before-define
           msg = await reserveCourtController(page, msg, fromTime, toTime, year, month, true);
+          return msg;
         }
         msg += `\n${courtName}を予約`;
         // DBに登録する

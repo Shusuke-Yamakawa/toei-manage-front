@@ -64,7 +64,7 @@ const getCourtCancel = async (page: Page, getCourt: GetCourt, id: number) => {
       return true;
     }
   }
-
+  console.log('一致するコートがなかった');
   return false;
 };
 

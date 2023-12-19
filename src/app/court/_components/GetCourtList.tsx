@@ -11,6 +11,11 @@ import { GetCourt } from '@/src/app/_lib/db/getCourt';
 const deleteGetCourtById = async (id: number) =>
   axios.delete(`http://localhost:3003/court/api/byWeb/${id}`);
 
+const getGetCourtByWeb = async () => {
+  axios.get('http://localhost:3003/court/api/byWeb/');
+  window.location.reload();
+};
+
 type Props = {
   data: ({ id: number } & GetCourt)[];
 };
@@ -77,6 +82,9 @@ export const GetCourtList: FC<Props> = ({ data }) => {
     <Flex direction="column" gap="md" m="lg">
       <Button onClick={deleteCourt} variant="light">
         削除
+      </Button>
+      <Button onClick={getGetCourtByWeb} variant="light">
+        再取得
       </Button>
       <Table>
         <Table.Thead>
