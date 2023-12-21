@@ -271,8 +271,7 @@ export async function GET(request: Request) {
   const year = date.year();
   const month = date.month() + 1; // month()の結果は0から始まるため、1を追加します
   const day = date.date();
-  let msg = `今月${fromTime}-${toTime}時の空きテニスコート
-${NOTIFY_OPEN_COURT().toDate()}`;
+  let msg = `今月${fromTime}-${toTime}時の空きテニスコート`;
   msg += await searchByTargetDay(page, fromTime!, toTime!, year, month);
   msg = await checkAndReserveAvailableCourt(page, msg, fromTime!, toTime!, year, month, false);
   if (day > 21) {
