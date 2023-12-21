@@ -94,6 +94,7 @@ export const findGetCourtOverCurrentCourt = async () => {
         },
       ],
     },
+    // include: { card: true },
     orderBy: [
       { year: 'asc' },
       { month: 'asc' },

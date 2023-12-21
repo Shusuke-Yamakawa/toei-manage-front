@@ -29,8 +29,8 @@ const PASSWD = '19550223';
 const RETRY_USER_ID = '86329044';
 const RETRY_PASSWD = '19870513';
 
-const GET_LIMIT_DAY = currentDate().add(5, 'day');
-const NOTIFY_OPEN_COURT = currentDate().add(5, 'day');
+const GET_LIMIT_DAY = () => currentDate().add(5, 'day');
+const NOTIFY_OPEN_COURT = () => currentDate().add(5, 'day');
 
 let getDay: number = 0;
 
@@ -97,7 +97,7 @@ const searchByTargetDay = async (
   year: number,
   month: number
 ) => {
-  const targetDayList = getHolidays(year, month, NOTIFY_OPEN_COURT);
+  const targetDayList = getHolidays(year, month, NOTIFY_OPEN_COURT());
   // テスト用
   // targetDayList.unshift(20);
   let msg = '';
@@ -255,7 +255,7 @@ const checkAndReserveAvailableCourt = async (
 ) => {
   if (msg.indexOf('空きコートあり！！') === -1) return msg;
   const targetDay = dayjs(`${year}-${month}-${getDay}`);
-  if (targetDay.isAfter(GET_LIMIT_DAY)) {
+  if (targetDay.isAfter(GET_LIMIT_DAY())) {
     msg = await reserveCourtController(page, msg, fromTime, toTime, year, month, retry);
   }
   await notify_line(msg, 'Qeuzd60OWvkoG0ZbctkpkkWFb9fUmYJYcTDBujxypsV');
@@ -272,7 +272,7 @@ export async function GET(request: Request) {
   const month = date.month() + 1; // month()の結果は0から始まるため、1を追加します
   const day = date.date();
   let msg = `今月${fromTime}-${toTime}時の空きテニスコート
-${NOTIFY_OPEN_COURT.toDate()}`;
+${NOTIFY_OPEN_COURT().toDate()}`;
   msg += await searchByTargetDay(page, fromTime!, toTime!, year, month);
   msg = await checkAndReserveAvailableCourt(page, msg, fromTime!, toTime!, year, month, false);
   if (day > 21) {

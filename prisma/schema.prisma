@@ -3,13 +3,11 @@
 
 generator client {
   provider = "prisma-client-js"
-  // 現バージョンでは不要そう previewFeatures = ["referentialIntegrity"]
 }
 
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
-  // 必要だったら追加する（外部制約サポートしたので不要か？） referentialIntegrity = "prisma"
 }
 
 model card {
@@ -18,6 +16,7 @@ model card {
   user_nm String
   available_flg Boolean @default(true)
   note String
+  courts getCourt[]
 }
 
 model draw {
@@ -52,4 +51,5 @@ model getCourt {
   from_time Int
   to_time Int
   court String
+  card card @relation(fields: [card_id], references: [card_id])
 }
