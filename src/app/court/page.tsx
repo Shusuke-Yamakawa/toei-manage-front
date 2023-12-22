@@ -5,7 +5,6 @@ import { GetCourtList } from '@/src/app/court/_components/GetCourtList';
 
 const CourtPage = async () => {
   const getCourtList = await findGetCourtOverCurrentCourt();
-  // console.log('getCourtList: ', getCourtList);
   return (
     <Flex direction="row" gap="md">
       <Navbar />

@@ -7,6 +7,7 @@ import { FC, useState } from 'react';
 import axios from 'axios';
 import { notifications } from '@mantine/notifications';
 import { GetCourt } from '@/src/app/_lib/db/getCourt';
+import { Card } from '@/src/app/_lib/db/card';
 
 const deleteGetCourtById = async (id: number) =>
   axios.delete(`http://localhost:3003/court/api/byWeb/${id}`);
@@ -17,7 +18,7 @@ const getGetCourtByWeb = async () => {
 };
 
 type Props = {
-  data: ({ id: number } & GetCourt)[];
+  data: ({ id: number } & GetCourt & { card: Card })[];
 };
 
 export const GetCourtList: FC<Props> = ({ data }) => {
@@ -76,6 +77,8 @@ export const GetCourtList: FC<Props> = ({ data }) => {
       <Table.Td>{d.to_time}</Table.Td>
       <Table.Td>{d.court}</Table.Td>
       <Table.Td>{d.card_id}</Table.Td>
+      <Table.Td>{d.card.password}</Table.Td>
+      <Table.Td>{d.card.user_nm}</Table.Td>
     </Table.Tr>
   ));
   return (
@@ -96,6 +99,8 @@ export const GetCourtList: FC<Props> = ({ data }) => {
             <Table.Th>終了時間</Table.Th>
             <Table.Th>コート名</Table.Th>
             <Table.Th>カードID</Table.Th>
+            <Table.Th>パスワード</Table.Th>
+            <Table.Th>カード名義</Table.Th>
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>{rows}</Table.Tbody>

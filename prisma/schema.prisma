@@ -17,6 +17,7 @@ model card {
   available_flg Boolean @default(true)
   note String
   courts getCourt[]
+  draws draw[]
 }
 
 model draw {
@@ -29,6 +30,7 @@ model draw {
   to_time Int
   court String
   confirm_flg Boolean
+  card card @relation(fields: [card_id], references: [card_id])
 }
 
 model oddsCourt {

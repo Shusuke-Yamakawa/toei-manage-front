@@ -1,5 +1,4 @@
 import { prisma } from '@/src/app/_lib/prisma';
-import { currentDate } from '@/src/app/_utils/date';
 
 export type Card = {
   card_id: string;
