@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,47 +8,52 @@ datasource db {
 }
 
 model card {
-  card_id String @id
-  password String
-  user_nm String
-  available_flg Boolean @default(true)
-  note String
-  courts getCourt[]
-  draws draw[]
+  card_id       String     @id
+  password      String
+  user_nm       String
+  available_flg Boolean    @default(true)
+  note          String
+  draw_flg      Boolean    @default(true)
+  draws         draw[]
+  courts        getCourt[]
 }
 
 model draw {
-  id Int @default(autoincrement()) @id
-  card_id String
-  year Int
-  month Int
-  day Int
-  from_time Int
-  to_time Int
-  court String
+  id          Int     @id @default(autoincrement())
+  card_id     String
+  year        Int
+  month       Int
+  day         Int
+  from_time   Int
+  to_time     Int
+  court       String
   confirm_flg Boolean
-  card card @relation(fields: [card_id], references: [card_id])
+  card        card    @relation(fields: [card_id], references: [card_id])
+
+  @@index([card_id], map: "draw_card_id_fkey")
 }
 
 model oddsCourt {
-  id Int @default(autoincrement()) @id
-  year Int
-  month Int
-  day Int
+  id        Int    @id @default(autoincrement())
+  year      Int
+  month     Int
+  day       Int
   from_time Int
-  to_time Int
-  court String
-  odds Int
+  to_time   Int
+  court     String
+  odds      Int
 }
 
 model getCourt {
-  id Int @default(autoincrement()) @id
-  card_id String
-  year Int
-  month Int
-  day Int
+  id        Int    @id @default(autoincrement())
+  card_id   String
+  year      Int
+  month     Int
+  day       Int
   from_time Int
-  to_time Int
-  court String
-  card card @relation(fields: [card_id], references: [card_id])
+  to_time   Int
+  court     String
+  card      card   @relation(fields: [card_id], references: [card_id])
+
+  @@index([card_id], map: "getCourt_card_id_fkey")
 }

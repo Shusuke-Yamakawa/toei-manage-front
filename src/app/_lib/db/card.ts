@@ -5,6 +5,7 @@ export type Card = {
   password: string;
   user_nm: string;
   available_flg: boolean;
+  draw_flg: boolean;
   note: string;
 };
 
