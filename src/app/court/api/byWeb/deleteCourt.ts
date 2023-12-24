@@ -64,7 +64,8 @@ const getCourtCancel = async (page: Page, getCourt: GetCourt, id: number) => {
       return true;
     }
   }
-  console.log('一致するコートがなかった');
+  console.log('一致するコートがなかった\nレコードは除去します');
+  await deleteGetCourtById({ id });
   return false;
 };
 
