@@ -17,7 +17,9 @@ https://zenn.dev/renoa/scraps/0cd5fe38702876
 
 ## ログイン
 
+```
 pscale auth login
+```
 
 ## 接続のコマンド
 
@@ -27,13 +29,17 @@ pscale connect toei-court main --port 3309
 
 ## スキーマから DB に反映させる
 
-`npx prisma db push`
+```
+npx prisma db push
+```
 
 ※schema.prisma
 
 ## スキーマをコード（prisma client）に反映させる
 
-`npx prisma generate`
+```
+npx prisma generate
+```
 
 ### windows の場合の注意点
 
@@ -42,4 +48,6 @@ operation not permitted, unlink が発生する
 
 ## GUI を立ち上げるコマンド
 
+```
 npx prisma studio
+```
