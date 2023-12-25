@@ -34,7 +34,7 @@ export const GetCourtList: FC<Props> = ({ data }) => {
           title: 'エラーが発生',
           message: 'キャンセル処理で失敗しました',
         });
-        break;
+        // break;
       }
     }
     notifications.show({

@@ -9,6 +9,7 @@ import {
   deleteGetCourtBySpecialIds,
   deleteGetCourtCurrentMonthBySpecialIds,
 } from '@/src/app/_lib/db/getCourt';
+import { notify_line } from '@/src/app/_utils/line';
 
 export const dynamic = 'force-dynamic';
 
@@ -72,7 +73,7 @@ export const getCourt = async () => {
   let msg = '【コート取得状況】';
   // 22日以前であれば、今月のみ削除
   const day = currentDate().day();
-  console.log('day: ', day);
+  // USER_LISTにプラスして、getCourtのレコードも対象にする
   if (day > 21) {
     await deleteGetCourtBySpecialIds({ cardIds: USER_LIST.map((user) => user.id) });
   } else {
@@ -108,7 +109,7 @@ export const getCourt = async () => {
   }
   await browser.close();
   console.log('最終msg: ', msg);
-  // await notify_line(msg);
+  await notify_line(msg);
 
   return msg;
 };
