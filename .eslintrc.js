@@ -15,5 +15,6 @@ module.exports = {
     'import/extensions': 'off',
     'no-await-in-loop': 'off',
     'no-plusplus': 'off',
+    'no-continue': 'off',
   },
 };

@@ -11,8 +11,9 @@ export const getHolidays = (year: number, month: number, limitDay: dayjs.Dayjs) 
   for (let date = startDate; date.isBefore(endDate); date = date.add(1, 'day')) {
     const isWeekend = date.day() === 0 || date.day() === 6;
     // 12/25は祝日ではない、29,30は祝日扱い
+    if (month === 12 && date.date() === 25) continue;
     const isHoliday =
-      (holidays.isHoliday(date.toDate()) && month === 12 && date.date() !== 25) ||
+      holidays.isHoliday(date.toDate()) ||
       (month === 12 && date.date() === 29) ||
       (month === 12 && date.date() === 30);
     if (date.isAfter(limitDay) && (isWeekend || isHoliday)) {
@@ -24,3 +25,14 @@ export const getHolidays = (year: number, month: number, limitDay: dayjs.Dayjs) 
 };
 
 export const currentDate = () => dayjs().tz();
+
+export const checkHoliday = (year: number, month: number) => {
+  const holidays = new Holidays('JP');
+  const startDate = dayjs(`${year}-${month}-01`);
+  const endDate = startDate.endOf('month');
+  for (let date = startDate; date.isBefore(endDate); date = date.add(1, 'day')) {
+    if (holidays.isHoliday(date.toDate())) {
+      console.log(date.format('YYYY-MM-DD'));
+    }
+  }
+};
