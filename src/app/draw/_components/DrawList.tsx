@@ -2,11 +2,12 @@
 
 'use client';
 
-import { Button, Checkbox, Flex, Modal, NumberInput, Table, Text, TextInput } from '@mantine/core';
+import { Button, Checkbox, Flex, Modal, NumberInput, Select, Table, Text } from '@mantine/core';
 import { FC, useState } from 'react';
 import axios from 'axios';
 import { notifications } from '@mantine/notifications';
 import { useDisclosure } from '@mantine/hooks';
+import { useForm } from '@mantine/form';
 import { Card } from '@/src/app/_lib/db/card';
 import { Draw } from '@/src/app/_lib/db/draw';
 
@@ -79,18 +80,36 @@ export const DrawList: FC<Props> = ({ draws, cardCanDraw }) => {
     </Table.Tr>
   ));
   const [opened, { open, close }] = useDisclosure(false);
+  const form = useForm({
+    initialValues: {
+      day: 1,
+      fromTime: 9,
+      toTime: 11,
+      court: '井の頭恩賜公園',
+      drawCount: 6,
+    },
+  });
   return (
     <Flex direction="column" gap="md" m="lg">
       <Button onClick={deleteDraw} variant="light">
         削除
       </Button>
       <Modal opened={opened} onClose={close} title="抽選">
-        <Text>{cardCanDraw.length}人</Text>
-        <NumberInput mt={8} label="日にち" />
-        <NumberInput label="開始時間" />
-        <NumberInput label="終了時間" />
-        <TextInput label="コート名" />
-        <NumberInput label="抽選人数" />
+        <form onSubmit={form.onSubmit((values) => console.log(values))}>
+          <Text>{cardCanDraw.length}人</Text>
+          <NumberInput mt={8} label="日にち" {...form.getInputProps('day')} />
+          <NumberInput label="開始時間" {...form.getInputProps('fromTime')} />
+          <NumberInput label="終了時間" {...form.getInputProps('toTime')} />
+          <Select
+            label="コート名"
+            data={['井の頭恩賜公園', '野川公園', '小金井公園', '府中の森公園']}
+            {...form.getInputProps('court')}
+          />
+          <NumberInput label="抽選人数" {...form.getInputProps('drawCount')} />
+          <Button mt={16} type="submit" variant="light">
+            抽選実行
+          </Button>
+        </form>
       </Modal>
       <Button onClick={open} variant="light">
         抽選
