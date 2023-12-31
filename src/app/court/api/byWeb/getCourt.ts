@@ -8,8 +8,10 @@ import {
   createGetCourt,
   deleteGetCourtBySpecialIds,
   deleteGetCourtCurrentMonthBySpecialIds,
+  findGetCourtOverCurrentCourt,
 } from '@/src/app/_lib/db/getCourt';
 import { notify_line } from '@/src/app/_utils/line';
+import { findCardById } from '@/src/app/_lib/db/card';
 
 export const dynamic = 'force-dynamic';
 
@@ -86,7 +88,8 @@ export const getCourt = async () => {
       page.waitForNavigation(),
       page.click('#goRsvStatusList'),
     ]);
-    msg += `\n${user.id}`;
+    const card = await findCardById(user.id);
+    msg += `\n${card?.user_nm}`;
     msg += await getCourtInfo(page, user.id);
     while (true) {
       try {
@@ -108,6 +111,13 @@ export const getCourt = async () => {
     ]);
   }
   await browser.close();
+  // 抽選等で取得した分を追加する
+  const cardsIdsIncludeUserList = USER_LIST.map((user) => user.id);
+  const getCourtListExcludeUserList = await findGetCourtOverCurrentCourt(cardsIdsIncludeUserList);
+  for (const court of getCourtListExcludeUserList) {
+    msg += `${court.card.user_nm}\n${court.month}月${court.day}日${court.court.slice(0, -2)}\n`;
+  }
+
   console.log('最終msg: ', msg);
   await notify_line(msg);
 

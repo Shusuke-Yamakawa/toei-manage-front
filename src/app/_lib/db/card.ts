@@ -11,9 +11,18 @@ export type Card = {
 
 export const createCard = async (params: Card) => prisma.card.create({ data: params });
 
+export const findCardAll = async () => prisma.card.findMany();
+
 export const findCardById = async (cardId: string) =>
   prisma.card.findUnique({
     where: {
       card_id: cardId,
+    },
+  });
+
+export const findCardCanDraw = async () =>
+  prisma.card.findMany({
+    where: {
+      AND: [{ available_flg: true }, { draw_flg: true }],
     },
   });

@@ -2,26 +2,23 @@
 
 'use client';
 
-import { Button, Checkbox, Flex, Table } from '@mantine/core';
+import { Button, Checkbox, Flex, Modal, NumberInput, Table, Text, TextInput } from '@mantine/core';
 import { FC, useState } from 'react';
 import axios from 'axios';
 import { notifications } from '@mantine/notifications';
+import { useDisclosure } from '@mantine/hooks';
 import { Card } from '@/src/app/_lib/db/card';
 import { Draw } from '@/src/app/_lib/db/draw';
 
 const deleteDrawById = async (id: number) =>
-  axios.delete(`http://localhost:3003/court/api/byWeb/${id}`);
-
-const getDrawByWeb = async () => {
-  axios.get('http://localhost:3003/court/api/byWeb/');
-  window.location.reload();
-};
+  axios.delete(`http://localhost:3003/draw/api/byWeb/${id}`);
 
 type Props = {
-  data: ({ id: number } & Draw & { card: Card })[];
+  draws: ({ id: number } & Draw & { card: Card })[];
+  cardCanDraw: Card[];
 };
 
-export const GetCourtList: FC<Props> = ({ data }) => {
+export const DrawList: FC<Props> = ({ draws, cardCanDraw }) => {
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
   const deleteDraw = async () => {
     for (const id of selectedRows) {
@@ -53,7 +50,7 @@ export const GetCourtList: FC<Props> = ({ data }) => {
   //   });
   // };
   console.log('selectedRows: ', selectedRows);
-  const rows = data.map((d) => (
+  const rows = draws.map((d) => (
     <Table.Tr
       key={d.id}
       bg={selectedRows.includes(d.id) ? 'var(--mantine-color-blue-light)' : undefined}
@@ -81,13 +78,22 @@ export const GetCourtList: FC<Props> = ({ data }) => {
       <Table.Td>{d.card.user_nm}</Table.Td>
     </Table.Tr>
   ));
+  const [opened, { open, close }] = useDisclosure(false);
   return (
     <Flex direction="column" gap="md" m="lg">
       <Button onClick={deleteDraw} variant="light">
         削除
       </Button>
-      <Button onClick={getDrawByWeb} variant="light">
-        再取得
+      <Modal opened={opened} onClose={close} title="抽選">
+        <Text>{cardCanDraw.length}人</Text>
+        <NumberInput mt={8} label="日にち" />
+        <NumberInput label="開始時間" />
+        <NumberInput label="終了時間" />
+        <TextInput label="コート名" />
+        <NumberInput label="抽選人数" />
+      </Modal>
+      <Button onClick={open} variant="light">
+        抽選
       </Button>
       <Table>
         <Table.Thead>

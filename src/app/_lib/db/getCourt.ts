@@ -50,7 +50,11 @@ export const findGetCourtById = async (id: number) =>
     },
   });
 
-export const findGetCourtOverCurrentCourt = async () => {
+/**
+ * 現在日付以降のコート取得情報を取得する
+ * @param cardIds 指定すると指定したカードID以外の情報を取得する
+ */
+export const findGetCourtOverCurrentCourt = async (cardIds?: string[]) => {
   const date = currentDate();
   const month = date.month() + 1;
   let nextMonths = month;
@@ -60,40 +64,47 @@ export const findGetCourtOverCurrentCourt = async () => {
     nextMonths = month + 1;
   }
   const day = date.date();
-  return prisma.getCourt.findMany({
-    where: {
-      AND: [
-        {
-          year: {
-            gte: date.year(),
+
+  const whereConditions = {
+    AND: [
+      {
+        year: {
+          gte: date.year(),
+        },
+      },
+      {
+        OR: [
+          {
+            month: {
+              gte: month,
+            },
           },
-        },
-        {
-          OR: [
-            {
-              month: {
-                gte: month,
-              },
+          {
+            month: nextMonths,
+          },
+        ],
+      },
+      {
+        OR: [
+          {
+            day: {
+              gte: day,
             },
-            {
-              month: nextMonths,
-            },
-          ],
-        },
-        {
-          OR: [
-            {
-              day: {
-                gte: day,
-              },
-            },
-            {
-              month: nextMonths,
-            },
-          ],
-        },
-      ],
-    },
+          },
+          {
+            month: nextMonths,
+          },
+        ],
+      },
+    ],
+  } as any;
+
+  if (cardIds && cardIds.length > 0) {
+    whereConditions.card_id = { not: { in: cardIds } };
+  }
+
+  return prisma.getCourt.findMany({
+    where: whereConditions,
     include: { card: true },
     orderBy: [
       { year: 'asc' },
