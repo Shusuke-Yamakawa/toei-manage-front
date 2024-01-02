@@ -79,3 +79,10 @@ export const findDrawNextMonthCourt = async () => {
     ],
   });
 };
+
+export const findDrawConfirmFlgFalse = async () =>
+  prisma.draw.findMany({
+    where: {
+      confirm_flg: false,
+    },
+  });

@@ -11,6 +11,16 @@ export type Card = {
 
 export const createCard = async (params: Card) => prisma.card.create({ data: params });
 
+export const updateCardDrawFlg = async (cardId: string) =>
+  prisma.card.update({
+    where: {
+      card_id: cardId,
+    },
+    data: {
+      draw_flg: false,
+    },
+  });
+
 export const findCardAll = async () => prisma.card.findMany();
 
 export const findCardById = async (cardId: string) =>

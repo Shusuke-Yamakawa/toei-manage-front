@@ -95,7 +95,20 @@ export const DrawList: FC<Props> = ({ draws, cardCanDraw }) => {
         削除
       </Button>
       <Modal opened={opened} onClose={close} title="抽選">
-        <form onSubmit={form.onSubmit((values) => console.log(values))}>
+        <form
+          onSubmit={form.onSubmit(async (values) => {
+            try {
+              await axios.post('http://localhost:3003/draw/api/byWeb/', values);
+            } catch (error) {
+              notifications.show({
+                color: 'red',
+                title: 'エラーが発生',
+                message: '抽選処理で失敗しました',
+              });
+            }
+            window.location.reload();
+          })}
+        >
           <Text>{cardCanDraw.length}人</Text>
           <NumberInput mt={8} label="日にち" {...form.getInputProps('day')} />
           <NumberInput label="開始時間" {...form.getInputProps('fromTime')} />
