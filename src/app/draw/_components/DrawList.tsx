@@ -14,6 +14,8 @@ import { Draw } from '@/src/app/_lib/db/draw';
 const deleteDrawById = async (id: number) =>
   axios.delete(`http://localhost:3003/draw/api/byWeb/${id}`);
 
+const drawConfirm = async () => axios.put('http://localhost:3003/draw/api/byWeb/');
+
 type Props = {
   draws: ({ id: number } & Draw & { card: Card })[];
   cardCanDraw: Card[];
@@ -126,6 +128,9 @@ export const DrawList: FC<Props> = ({ draws, cardCanDraw }) => {
       </Modal>
       <Button onClick={open} variant="light">
         抽選
+      </Button>
+      <Button onClick={drawConfirm} variant="light">
+        抽選確認
       </Button>
       <Table>
         <Table.Thead>

@@ -11,13 +11,13 @@ export type Card = {
 
 export const createCard = async (params: Card) => prisma.card.create({ data: params });
 
-export const updateCardDrawFlg = async (cardId: string) =>
+export const updateCardDrawFlg = async (cardId: string, draw_flg: boolean) =>
   prisma.card.update({
     where: {
       card_id: cardId,
     },
     data: {
-      draw_flg: false,
+      draw_flg,
     },
   });
 

@@ -22,6 +22,16 @@ type CardIds = {
 
 export const createDraw = async (params: Draw) => prisma.draw.create({ data: params });
 
+export const updateConfirmDrawFlg = async (id: number) =>
+  prisma.draw.update({
+    where: {
+      id,
+    },
+    data: {
+      confirm_flg: true,
+    },
+  });
+
 export const deleteDrawById = async ({ id }: Id) =>
   prisma.draw.delete({
     where: {
@@ -46,7 +56,7 @@ export const findDrawById = async (id: number) =>
     },
   });
 
-export const findDrawNextMonthCourt = async () => {
+export const findDrawNextMonthCourt = async (confirmFlg?: boolean) => {
   const date = currentDate();
   const month = date.month() + 1;
   let nextMonths = month;
@@ -55,19 +65,23 @@ export const findDrawNextMonthCourt = async () => {
   } else {
     nextMonths = month + 1;
   }
+  const whereConditions = {
+    AND: [
+      {
+        year: {
+          gte: date.year(),
+        },
+      },
+      {
+        month: nextMonths,
+      },
+    ],
+  } as any;
+  if (confirmFlg !== undefined) {
+    whereConditions.confirm_flg = confirmFlg;
+  }
   return prisma.draw.findMany({
-    where: {
-      AND: [
-        {
-          year: {
-            gte: date.year(),
-          },
-        },
-        {
-          month: nextMonths,
-        },
-      ],
-    },
+    where: whereConditions,
     include: { card: true },
     orderBy: [
       { year: 'asc' },
