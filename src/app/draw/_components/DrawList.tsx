@@ -2,7 +2,17 @@
 
 'use client';
 
-import { Button, Checkbox, Flex, Modal, NumberInput, Select, Table, Text } from '@mantine/core';
+import {
+  Button,
+  Checkbox,
+  Flex,
+  LoadingOverlay,
+  Modal,
+  NumberInput,
+  Select,
+  Table,
+  Text,
+} from '@mantine/core';
 import { FC, useState } from 'react';
 import axios from 'axios';
 import { notifications } from '@mantine/notifications';
@@ -82,6 +92,7 @@ export const DrawList: FC<Props> = ({ draws, cardCanDraw }) => {
     </Table.Tr>
   ));
   const [opened, { open, close }] = useDisclosure(false);
+  const [visible, { toggle }] = useDisclosure(false);
   const form = useForm({
     initialValues: {
       day: 1,
@@ -97,9 +108,11 @@ export const DrawList: FC<Props> = ({ draws, cardCanDraw }) => {
         削除
       </Button>
       <Modal opened={opened} onClose={close} title="抽選">
+        <LoadingOverlay visible={visible} zIndex={1000} overlayProps={{ radius: 'sm', blur: 2 }} />
         <form
           onSubmit={form.onSubmit(async (values) => {
             try {
+              toggle();
               await axios.post('http://localhost:3003/draw/api/byWeb/', values);
             } catch (error) {
               notifications.show({
@@ -108,6 +121,7 @@ export const DrawList: FC<Props> = ({ draws, cardCanDraw }) => {
                 message: '抽選処理で失敗しました',
               });
             }
+            // toggle();
             window.location.reload();
           })}
         >

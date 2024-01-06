@@ -35,7 +35,7 @@ export const login = async (
   }
 };
 
-export const confirmExpired = async (page: Page, userNm: string) => {
+export const confirmExpired = async (page: Page) => {
   try {
     const web_element = await page.$x(
       "//*[@id='childForm']/div/table[1]/tbody/tr[2]/td/div/dl[2]/dd/font/u"
@@ -45,7 +45,7 @@ export const confirmExpired = async (page: Page, userNm: string) => {
       const textContent = await page.evaluate((el) => el.textContent, web_element[0]);
 
       if (textContent!.includes('有効期限が切れます')) {
-        const warnMsg = `\n\n${userNm} 【期限切れ直前】`;
+        const warnMsg = '【期限切れ直前】\n';
         return warnMsg;
       }
       if (textContent!.includes('有効期限が切れている')) {

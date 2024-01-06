@@ -10,19 +10,33 @@ import { createDraw } from '@/src/app/_lib/db/draw';
 
 export const dynamic = 'force-dynamic';
 
+const getNumberByCourt = (court: string): number => {
+  switch (court) {
+    case '府中の森公園':
+      return 0;
+    case '小金井公園':
+      return 1;
+    case '野川公園':
+      return 2;
+    case '井の頭恩賜公園':
+      return 3;
+    default:
+      throw new Error('不正な公園を指定しています');
+  }
+};
+
 const drawExec = async (
   page: Page,
   param: {
     card_id: string;
-    userNm: string;
     day: number;
     fromTime: number;
     toTime: number;
     court: string;
   }
 ) => {
-  const { card_id, userNm, day, fromTime, toTime, court } = param;
-  let msg = `${userNm}\n`;
+  const { card_id, day, fromTime, toTime, court } = param;
+  let msg = '';
   try {
     await Promise.all([
       // 画面遷移まで待機する
@@ -39,7 +53,8 @@ const drawExec = async (
     page.waitForNavigation(),
     await page.click('#goFavLotList'),
   ]);
-  await page.click(`//input[@type='radio' and @value='${court}']`);
+  const courtNumber = getNumberByCourt(court);
+  await page.click(`input[type="radio"][value="${courtNumber}"]`);
   await Promise.all([
     // 画面遷移まで待機する
     page.waitForNavigation(),
@@ -49,19 +64,29 @@ const drawExec = async (
   const nextMonthYear = month === 12 ? currentDate().year() + 1 : currentDate().year();
   const nextMonth = month === 12 ? 1 : month + 1;
   for (let i = 0; i < 2; i++) {
-    await page.click(`[link="${day}"]`);
+    const link = (await page.$x(`//a[contains(text(), "${day}")]`)) as any;
+    await Promise.all([
+      // 画面遷移まで待機する
+      page.waitForNavigation(),
+      await link[0].click(),
+    ]);
     const targetTime = `${fromTime}00_${toTime}00`;
-    await page.click(`//input[@value='${targetTime}']`);
-    await page.click("//input[@value='申込みを確定する']");
-    // ダイアログでOKの処理はダイアログが出る直前に記述する
+    await page.click(`input[type="radio"][value="${targetTime}"]`);
+    await Promise.all([
+      // 画面遷移まで待機する
+      page.waitForNavigation(),
+      await page.click('#doDateTimeSet'),
+    ]);
+    // ダイアログでOKの処理はダイアログが出る直前に記述するグでOKの処理はダイアログが出る直前に記述する
     page.once('dialog', async (dialog) => {
       await dialog.accept();
     });
     await Promise.all([
       // 画面遷移まで待機する
       page.waitForNavigation(),
-      await page.click("//input[@value='抽選を申込む']"),
+      await page.click('#doOnceFix'),
     ]);
+
     if (i === 0) {
       await Promise.all([
         // 画面遷移まで待機する
@@ -81,12 +106,12 @@ const drawExec = async (
     });
   }
   await updateCardDrawFlg(card_id, false);
-  msg = `\n${await page.$eval('#bgcdnamem', (element) => element.textContent)}`;
+  msg += `${await page.$eval('#bgcdnamem', (element) => element.textContent)}`;
   msg += `\n${await page.$eval(
     '#targetLabel',
     (element) => element.textContent
   )} ${await page.$eval('#timeLabel', (element) => element.textContent)}`;
-  msg += `\n件数${await page.$eval('#totalCount', (element) => element.textContent)}`;
+  msg += `\n件数${await page.$eval('#totalCount', (element) => element.textContent)}\n`;
   return msg;
 };
 
@@ -99,17 +124,16 @@ export const drawCourt = async (param: {
 }) => {
   const { day, fromTime, toTime, court, drawCount } = param;
   const { page, browser } = await toeiPage();
-  let msg = '【抽選設定】\n';
+  let msg = '【抽選設定】';
   const cardCanDraw = await findCardCanDraw();
 
   for (let i = 0; i < drawCount; i++) {
     const { user_nm, card_id, password } = cardCanDraw[i];
-    msg += `${user_nm}\n`;
+    msg += `\n${user_nm}\n`;
     await login(page, card_id, password);
-    msg += confirmExpired(page, user_nm);
+    msg += await confirmExpired(page);
     msg += await drawExec(page, {
       card_id,
-      userNm: user_nm,
       day,
       fromTime,
       toTime,
