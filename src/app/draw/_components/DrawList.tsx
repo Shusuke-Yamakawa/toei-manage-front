@@ -62,7 +62,6 @@ export const DrawList: FC<Props> = ({ draws, cardCanDraw }) => {
   //     message: 'キャンセル処理が完了しました',
   //   });
   // };
-  console.log('selectedRows: ', selectedRows);
   const rows = draws.map((d) => (
     <Table.Tr
       key={d.id}

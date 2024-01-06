@@ -2,10 +2,11 @@
 
 'use client';
 
-import { Button, Checkbox, Flex, Table } from '@mantine/core';
+import { Button, Checkbox, Flex, LoadingOverlay, Table } from '@mantine/core';
 import { FC, useState } from 'react';
 import axios from 'axios';
 import { notifications } from '@mantine/notifications';
+import { useDisclosure } from '@mantine/hooks';
 import { GetCourt } from '@/src/app/_lib/db/getCourt';
 import { Card } from '@/src/app/_lib/db/card';
 
@@ -13,7 +14,7 @@ const deleteGetCourtById = async (id: number) =>
   axios.delete(`http://localhost:3003/court/api/byWeb/${id}`);
 
 const getGetCourtByWeb = async () => {
-  axios.get('http://localhost:3003/court/api/byWeb/');
+  await axios.get('http://localhost:3003/court/api/byWeb/');
   window.location.reload();
 };
 
@@ -52,7 +53,7 @@ export const GetCourtList: FC<Props> = ({ data }) => {
   //     message: 'キャンセル処理が完了しました',
   //   });
   // };
-  console.log('selectedRows: ', selectedRows);
+  const [visible, { toggle }] = useDisclosure(false);
   const rows = data.map((d) => (
     <Table.Tr
       key={d.id}
@@ -86,9 +87,16 @@ export const GetCourtList: FC<Props> = ({ data }) => {
       <Button onClick={deleteCourt} variant="light">
         削除
       </Button>
-      <Button onClick={getGetCourtByWeb} variant="light">
+      <Button
+        onClick={async () => {
+          toggle();
+          await getGetCourtByWeb();
+        }}
+        variant="light"
+      >
         再取得
       </Button>
+      <LoadingOverlay visible={visible} zIndex={1000} overlayProps={{ radius: 'sm', blur: 2 }} />
       <Table>
         <Table.Thead>
           <Table.Tr>
