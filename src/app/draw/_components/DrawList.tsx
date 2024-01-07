@@ -120,7 +120,6 @@ export const DrawList: FC<Props> = ({ draws, cardCanDraw }) => {
                 message: '抽選処理で失敗しました',
               });
             }
-            // toggle();
             window.location.reload();
           })}
         >

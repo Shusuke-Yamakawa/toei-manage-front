@@ -4,8 +4,7 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   const getCourt = await findGetCourtOverCurrentCourt();
-
-  return new Response(JSON.stringify({ message: getCourt }), {
+  return new Response(JSON.stringify(getCourt), {
     headers: { 'Content-Type': 'application/json' },
   });
 }

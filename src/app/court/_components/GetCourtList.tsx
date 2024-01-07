@@ -24,6 +24,7 @@ type Props = {
 
 export const GetCourtList: FC<Props> = ({ data }) => {
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
+  const [visible, { toggle, close }] = useDisclosure(false);
   const deleteCourt = async () => {
     for (const id of selectedRows) {
       try {
@@ -38,6 +39,7 @@ export const GetCourtList: FC<Props> = ({ data }) => {
         // break;
       }
     }
+    close();
     notifications.show({
       color: 'blue',
       title: '完了',
@@ -53,7 +55,6 @@ export const GetCourtList: FC<Props> = ({ data }) => {
   //     message: 'キャンセル処理が完了しました',
   //   });
   // };
-  const [visible, { toggle }] = useDisclosure(false);
   const rows = data.map((d) => (
     <Table.Tr
       key={d.id}
@@ -84,7 +85,13 @@ export const GetCourtList: FC<Props> = ({ data }) => {
   ));
   return (
     <Flex direction="column" gap="md" m="lg">
-      <Button onClick={deleteCourt} variant="light">
+      <Button
+        onClick={async () => {
+          toggle();
+          await deleteCourt();
+        }}
+        variant="light"
+      >
         削除
       </Button>
       <Button
