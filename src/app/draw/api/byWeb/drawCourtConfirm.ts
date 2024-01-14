@@ -85,6 +85,7 @@ export const drawCourtConfirm = async () => {
         from_time,
         to_time,
         court,
+        public_flg: true,
       });
     }
     msg += getNumber && `${user_nm}\n${day}日 ${from_time}-${to_time}\n${court}${getNumber}件\n`;

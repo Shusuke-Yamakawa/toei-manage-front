@@ -9,6 +9,7 @@ export type GetCourt = {
   from_time: number;
   to_time: number;
   court: string;
+  public_flg?: boolean;
 };
 
 type Id = {
