@@ -21,30 +21,28 @@ const confirmExec = async (page: Page) => {
   let confirmNumber = 0;
 
   try {
-    const web_elements = await page.$eval('#lotStatusListItems', (element) =>
-      element.querySelectorAll('tr')
-    );
-    const num = web_elements.length;
-
+    const num = await page.$$eval('#lotStatusListItems tr', (elements) => elements.length);
     for (let i = 0; i < num; i++) {
       try {
-        const lotElectConfirmElements = await page.$$('#goLotElectConfirm');
         await Promise.all([
+          // 画面遷移まで待機する
           page.waitForNavigation(),
-          page.evaluate(
-            (elements, j) => {
-              elements[j].click();
-            },
-            lotElectConfirmElements,
-            i
-          ),
+          await page.click('#goLotElectConfirm'),
         ]);
+        await Promise.all([
+          // 画面遷移まで待機する
+          page.waitForNavigation(),
+          await page.click('#doOnceLockFix'),
+        ]);
+        console.log('抽選確定しました');
         confirmNumber += 1;
       } catch {
+        console.log('抽選確定するものがありません');
         continue;
       }
     }
   } catch {
+    console.log('抽選が行われてない');
     return confirmNumber;
   }
 
@@ -55,6 +53,7 @@ export const drawCourtConfirm = async () => {
   const { page, browser } = await toeiPage();
   let msg = '【抽選確定】\n';
   const drawTarget = await findDrawNextMonthCourt(false);
+  const processedCardIds: Record<string, boolean> = {};
   for (const draw of drawTarget) {
     const {
       id,
@@ -65,6 +64,11 @@ export const drawCourtConfirm = async () => {
       to_time,
       court,
     } = draw;
+    // すでに処理済みのカードはスキップする
+    if (processedCardIds[card_id]) {
+      await updateConfirmDrawFlg(id);
+      continue;
+    }
     await login(page, card_id, password);
     const getNumber = await confirmExec(page);
     await updateCardDrawFlg(card_id, true);
@@ -83,12 +87,13 @@ export const drawCourtConfirm = async () => {
         court,
       });
     }
-    msg += `${user_nm}\n${day}日 ${from_time}-${to_time}\n${court}${getNumber}件\n`;
+    msg += getNumber && `${user_nm}\n${day}日 ${from_time}-${to_time}\n${court}${getNumber}件\n`;
     await Promise.all([
       // 画面遷移まで待機する
       page.waitForNavigation(),
       await page.click('input[value="ログアウト"]'),
     ]);
+    processedCardIds[card_id] = true;
   }
 
   await browser.close();

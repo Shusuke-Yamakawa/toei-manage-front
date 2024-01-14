@@ -18,13 +18,12 @@ import axios from 'axios';
 import { notifications } from '@mantine/notifications';
 import { useDisclosure } from '@mantine/hooks';
 import { useForm } from '@mantine/form';
+import { modals } from '@mantine/modals';
 import { Card } from '@/src/app/_lib/db/card';
 import { Draw } from '@/src/app/_lib/db/draw';
 
 const deleteDrawById = async (id: number) =>
   axios.delete(`http://localhost:3003/draw/api/byWeb/${id}`);
-
-const drawConfirm = async () => axios.put('http://localhost:3003/draw/api/byWeb/');
 
 type Props = {
   draws: ({ id: number } & Draw & { card: Card })[];
@@ -32,6 +31,19 @@ type Props = {
 };
 
 export const DrawList: FC<Props> = ({ draws, cardCanDraw }) => {
+  const [visible, { toggle }] = useDisclosure(false);
+  const drawConfirm = () =>
+    modals.openConfirmModal({
+      title: '抽選確定',
+      children: <Text size="sm">抽選確定処理を実行します。よろしいですか？</Text>,
+      labels: { confirm: 'Confirm', cancel: 'Cancel' },
+      onCancel: () => console.log('Cancel'),
+      onConfirm: async () => {
+        toggle();
+        await axios.put('http://localhost:3003/draw/api/byWeb/');
+        window.location.reload();
+      },
+    });
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
   const deleteDraw = async () => {
     for (const id of selectedRows) {
@@ -88,10 +100,11 @@ export const DrawList: FC<Props> = ({ draws, cardCanDraw }) => {
       <Table.Td>{d.card_id}</Table.Td>
       <Table.Td>{d.card.password}</Table.Td>
       <Table.Td>{d.card.user_nm}</Table.Td>
+      <Table.Td>{d.confirm_flg ? '確定後' : '確定前'}</Table.Td>
     </Table.Tr>
   ));
   const [opened, { open, close }] = useDisclosure(false);
-  const [visible, { toggle }] = useDisclosure(false);
+  const [visibleModal, { toggle: toggleModal }] = useDisclosure(false);
   const form = useForm({
     initialValues: {
       day: 1,
@@ -107,11 +120,15 @@ export const DrawList: FC<Props> = ({ draws, cardCanDraw }) => {
         削除
       </Button>
       <Modal opened={opened} onClose={close} title="抽選">
-        <LoadingOverlay visible={visible} zIndex={1000} overlayProps={{ radius: 'sm', blur: 2 }} />
+        <LoadingOverlay
+          visible={visibleModal}
+          zIndex={1000}
+          overlayProps={{ radius: 'sm', blur: 2 }}
+        />
         <form
           onSubmit={form.onSubmit(async (values) => {
             try {
-              toggle();
+              toggleModal();
               await axios.post('http://localhost:3003/draw/api/byWeb/', values);
             } catch (error) {
               notifications.show({
@@ -144,6 +161,7 @@ export const DrawList: FC<Props> = ({ draws, cardCanDraw }) => {
       <Button onClick={drawConfirm} variant="light">
         抽選確認
       </Button>
+      <LoadingOverlay visible={visible} zIndex={1000} overlayProps={{ radius: 'sm', blur: 2 }} />
       <Table>
         <Table.Thead>
           <Table.Tr>
@@ -156,6 +174,7 @@ export const DrawList: FC<Props> = ({ draws, cardCanDraw }) => {
             <Table.Th>カードID</Table.Th>
             <Table.Th>パスワード</Table.Th>
             <Table.Th>カード名義</Table.Th>
+            <Table.Th>確定処理</Table.Th>
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>{rows}</Table.Tbody>
