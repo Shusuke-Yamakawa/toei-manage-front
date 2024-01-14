@@ -54,6 +54,7 @@ model getCourt {
   to_time   Int
   court     String
   public_flg  Boolean    @default(false)
+  updatedAt DateTime @updatedAt
   card      card   @relation(fields: [card_id], references: [card_id])
 
   @@index([card_id], map: "getCourt_card_id_fkey")
