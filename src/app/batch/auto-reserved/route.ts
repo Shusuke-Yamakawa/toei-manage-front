@@ -99,7 +99,7 @@ const searchByTargetDay = async (
 ) => {
   const targetDayList = getHolidays(year, month, NOTIFY_OPEN_COURT());
   // テスト用
-  // targetDayList.unshift(20);
+  // targetDayList.unshift(26);
   let msg = '';
   for (const day of targetDayList) {
     const emptyCourts = await searchOpenCourt(page, fromTime, toTime, year, month, day);
