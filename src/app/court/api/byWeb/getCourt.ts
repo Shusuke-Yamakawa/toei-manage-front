@@ -74,7 +74,7 @@ export const getCourt = async () => {
   const { page, browser } = await toeiPage();
   let msg = '【コート取得状況】';
   // 22日以前であれば、今月のみ削除
-  const day = currentDate().day();
+  const day = currentDate().date();
   // USER_LISTにプラスして、getCourtのレコードも対象にする
   if (day > 21) {
     await deleteGetCourtBySpecialIds({ cardIds: USER_LIST.map((user) => user.id) });
