@@ -6,6 +6,7 @@ export type Card = {
   user_nm: string;
   available_flg: boolean;
   draw_flg: boolean;
+  admin_flg: boolean;
   note: string;
 };
 

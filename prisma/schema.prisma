@@ -14,6 +14,7 @@ model card {
   available_flg Boolean    @default(true)
   note          String
   draw_flg      Boolean    @default(true)
+  admin_flg     Boolean    @default(false)
   draws         draw[]
   courts        getCourt[]
 }
