@@ -5,6 +5,8 @@
   display: flex;
   flex-direction: column;
   background-color: var(--mantine-color-blue-filled);
+  position: relative;
+  min-height: 100vh;
 }
 
 .navbarMain {
