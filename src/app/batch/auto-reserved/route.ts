@@ -174,6 +174,9 @@ const reserveCourt = async (
           return msg;
         }
         msg += `\n${courtName}を予約`;
+        const toTimeWeb = await page.$eval('#etimeLabel', (element) => element.textContent);
+        const toTimeDb = toTimeWeb!.match(/(\d+)/)![1];
+
         // DBに登録する
         await createGetCourt({
           card_id: userId,
@@ -181,7 +184,7 @@ const reserveCourt = async (
           month,
           day: getDay,
           from_time: Number(fromTime),
-          to_time: Number(toTime),
+          to_time: Number(toTimeDb),
           court: courtName!,
         });
         return msg;
