@@ -11,12 +11,14 @@ model card {
   card_id       String     @id
   password      String
   user_nm       String
+  nick_nm       String     @default("")
   available_flg Boolean    @default(true)
   note          String
   draw_flg      Boolean    @default(true)
   admin_flg     Boolean    @default(false)
   draws         draw[]
   courts        getCourt[]
+  entries       entry[]
 }
 
 model draw {
@@ -55,8 +57,34 @@ model getCourt {
   to_time   Int
   court     String
   public_flg  Boolean    @default(false)
+  hold_flg  Boolean    @default(false)
   updatedAt DateTime @updatedAt
   card      card   @relation(fields: [card_id], references: [card_id])
+  entries   entry[]
 
   @@index([card_id], map: "getCourt_card_id_fkey")
+}
+
+model entry {
+  id        Int    @id @default(autoincrement())
+  card_id   String
+  court_id  Int
+  possibility String
+  comment   String
+  updatedAt DateTime @updatedAt
+
+  getCourt  getCourt  @relation(fields: [court_id], references: [id])
+  card      card      @relation(fields: [card_id], references: [card_id])
+  guests    guest[]
+
+  @@unique(fields: [card_id, court_id], name: "card_court")
+}
+
+model guest {
+  id        Int    @id @default(autoincrement())
+  guest_nm  String
+  entry_id  Int
+  updatedAt DateTime @updatedAt
+
+  entry     entry  @relation(fields: [entry_id], references: [id])
 }
