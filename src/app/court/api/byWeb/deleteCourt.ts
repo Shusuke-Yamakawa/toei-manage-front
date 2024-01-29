@@ -3,19 +3,34 @@
 import { Page } from 'puppeteer';
 import { toeiPage } from '@/src/app/_lib/puppeteer';
 import { login } from '@/src/app/_utils/login';
-import { GetCourt, deleteGetCourtById, findGetCourtById } from '@/src/app/_lib/db/getCourt';
+import {
+  GetCourt,
+  GetCourtIncludeEntry,
+  deleteGetCourtById,
+  findGetCourtById,
+} from '@/src/app/_lib/db/getCourt';
 import { findCardById } from '@/src/app/_lib/db/card';
 import { notify_line } from '@/src/app/_utils/line';
+import { deleteEntryByIds } from '@/src/app/_lib/db/entry';
+import { deleteGuestByIds, findGuestByEntryIds } from '@/src/app/_lib/db/guest';
 
 export const dynamic = 'force-dynamic';
 
-const getCourtCancel = async (page: Page, getCourt: GetCourt, id: number) => {
+const getCourtCancel = async (
+  page: Page,
+  getCourt: GetCourt & GetCourtIncludeEntry,
+  id: number
+) => {
   // 取得名の取得
   const getCourtDbKey = `${getCourt.month}${getCourt.day}${getCourt.from_time}${getCourt.to_time}${getCourt.court}`;
   console.log('getCourtDbKey: ', getCourtDbKey);
   const getCourts = await page.$$eval('#ymdLabel', (elements) =>
     elements.map((element) => element.textContent)
   );
+  const entryIds = getCourt.entries.map((entry) => entry.id);
+  const guestInfo = await findGuestByEntryIds(entryIds);
+  const guestIds = guestInfo.map((guest) => guest.id);
+
   for (let i = 0; i < getCourts.length; i++) {
     // webから取得情報を取得
     const dates = await page.$$eval('#ymdLabel', (elements) =>
@@ -60,11 +75,15 @@ const getCourtCancel = async (page: Page, getCourt: GetCourt, id: number) => {
       await page.click('#doDelete');
       console.log('キャンセル完了');
       await notify_line(`【キャンセル完了】\n ${courtKey}`);
+      await deleteGuestByIds(guestIds);
+      await deleteEntryByIds(entryIds);
       await deleteGetCourtById({ id });
       return true;
     }
   }
   console.log('一致するコートがなかった\nレコードは除去します');
+  await deleteGuestByIds(guestIds);
+  await deleteEntryByIds(entryIds);
   await deleteGetCourtById({ id });
   return false;
 };

@@ -1,6 +1,17 @@
 import { prisma } from '@/src/app/_lib/prisma';
 import { currentDate } from '@/src/app/_utils/date';
 
+export type GetCourtIncludeEntry = {
+  id: number;
+  entries: {
+    id: number;
+    card_id: string;
+    court_id: number;
+    possibility: string;
+    comment: string;
+  }[];
+};
+
 export type GetCourt = {
   card_id: string;
   year: number;
@@ -48,6 +59,9 @@ export const findGetCourtById = async (id: number) =>
   prisma.getCourt.findUnique({
     where: {
       id,
+    },
+    include: {
+      entries: true, // 関連するentryも取得する
     },
   });
 
