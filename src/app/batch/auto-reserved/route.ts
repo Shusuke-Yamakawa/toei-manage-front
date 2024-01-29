@@ -156,6 +156,7 @@ const reserveCourt = async (
       ]);
       try {
         const courtName = await page.$eval('#bnamem', (item) => item.textContent);
+        const toTimeWeb = await page.$eval('#etimeLabel', (element) => element.textContent);
         await Promise.all([
           // 画面遷移まで待機する
           page.waitForNavigation(),
@@ -174,7 +175,6 @@ const reserveCourt = async (
           return msg;
         }
         msg += `\n${courtName}を予約`;
-        const toTimeWeb = await page.$eval('#etimeLabel', (element) => element.textContent);
         const toTimeDb = toTimeWeb!.match(/(\d+)/)![1];
 
         // DBに登録する
