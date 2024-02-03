@@ -4,6 +4,7 @@ export type Card = {
   card_id: string;
   password: string;
   user_nm: string;
+  nick_nm: string;
   available_flg: boolean;
   draw_flg: boolean;
   admin_flg: boolean;
