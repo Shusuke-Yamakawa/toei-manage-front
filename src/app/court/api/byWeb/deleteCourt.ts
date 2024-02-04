@@ -12,7 +12,7 @@ import {
 import { findCardById } from '@/src/app/_lib/db/card';
 import { notify_line } from '@/src/app/_utils/line';
 import { deleteEntryByIds } from '@/src/app/_lib/db/entry';
-import { deleteGuestByIds, findGuestByEntryIds } from '@/src/app/_lib/db/guest';
+import { deleteGuestByIds, findGuestByCourtId } from '@/src/app/_lib/db/guest';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,7 +28,7 @@ const getCourtCancel = async (
     elements.map((element) => element.textContent)
   );
   const entryIds = getCourt.entries.map((entry) => entry.id);
-  const guestInfo = await findGuestByEntryIds(entryIds);
+  const guestInfo = await findGuestByCourtId(id);
   const guestIds = guestInfo.map((guest) => guest.id);
 
   for (let i = 0; i < getCourts.length; i++) {

@@ -5,12 +5,10 @@ export type Guest = {
   entry_id: number;
 };
 
-export const findGuestByEntryIds = async (entryIds: number[]) =>
+export const findGuestByCourtId = async (courtId: number) =>
   prisma.guest.findMany({
     where: {
-      entry_id: {
-        in: entryIds,
-      },
+      court_id: courtId,
     },
   });
 

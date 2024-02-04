@@ -1,5 +1,5 @@
 import puppeteer from 'puppeteer';
-import { TOEI_URL, toeiPage } from '@/src/app/_lib/puppeteer';
+import { TOEI_URL } from '@/src/app/_lib/puppeteer';
 import { login } from '@/src/app/_utils/login';
 
 export async function GET(request: Request) {
