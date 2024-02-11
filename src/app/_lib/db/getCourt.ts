@@ -21,6 +21,7 @@ export type GetCourt = {
   to_time: number;
   court: string;
   public_flg?: boolean;
+  hold_flg?: boolean;
 };
 
 type Id = {

@@ -81,6 +81,7 @@ export const GetCourtList: FC<Props> = ({ data }) => {
       <Table.Td>{d.card_id}</Table.Td>
       <Table.Td>{d.card.password}</Table.Td>
       <Table.Td>{d.card.user_nm}</Table.Td>
+      <Table.Td>{d.hold_flg ? '開催' : '未定'}</Table.Td>
     </Table.Tr>
   ));
   return (
@@ -116,6 +117,7 @@ export const GetCourtList: FC<Props> = ({ data }) => {
             <Table.Th>カードID</Table.Th>
             <Table.Th>パスワード</Table.Th>
             <Table.Th>カード名義</Table.Th>
+            <Table.Th>開催設定</Table.Th>
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>{rows}</Table.Tbody>
