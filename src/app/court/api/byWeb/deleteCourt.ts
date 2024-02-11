@@ -91,6 +91,10 @@ const getCourtCancel = async (
 export const deleteCourt = async (id: number) => {
   const { page, browser } = await toeiPage();
   const getCourt = await findGetCourtById(id);
+  if (getCourt?.hold_flg) {
+    console.log('開催予定のためキャンセルできません');
+    return false;
+  }
   const cardId = getCourt?.card_id!;
   const card = await findCardById(cardId);
   await login(page, cardId, card?.password);
