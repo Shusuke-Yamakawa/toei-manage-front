@@ -41,7 +41,7 @@ export const CardList: FC<Props> = ({ data }) => {
   return (
     <Flex direction="column" gap="md" m="lg">
       <Button variant="light">削除</Button>
-      <Button variant="light">button</Button>
+      <Button variant="light">更新予定</Button>
       <Table>
         <Table.Thead>
           <Table.Tr>
