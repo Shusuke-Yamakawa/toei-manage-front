@@ -109,7 +109,7 @@ export const getCourt = async () => {
   const cardsIdsIncludeUserList = USER_LIST.map((user) => user.id);
   const getCourtListExcludeUserList = await findGetCourtOverCurrentCourt(cardsIdsIncludeUserList);
   for (const court of getCourtListExcludeUserList) {
-    msg += `${court.card.user_nm}\n${court.month}月${court.day}日${court.court.slice(0, -2)}\n`;
+    msg += `\n${court.card.user_nm}\n${court.month}月${court.day}日${court.court.slice(0, -2)}`;
   }
 
   console.log('最終msg: ', msg);
