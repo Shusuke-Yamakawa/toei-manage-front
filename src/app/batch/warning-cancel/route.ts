@@ -5,9 +5,11 @@ import { notify_line } from '@/src/app/_utils/line';
 export const dynamic = 'force-dynamic';
 
 // 5日後の予約で開催予定がないコートをラインに通知
-export async function GET() {
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const addDay = Number(searchParams.get('day'));
   const date = currentDate();
-  const warningDate = date.add(5, 'day');
+  const warningDate = date.add(addDay, 'day');
   const year = warningDate.year();
   const month = warningDate.month() + 1;
   const day = warningDate.date();
