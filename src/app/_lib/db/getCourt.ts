@@ -132,3 +132,24 @@ export const findGetCourtOverCurrentCourt = async (cardIds?: string[]) => {
     ],
   });
 };
+
+export const findGetCourtByDateAndHoldFlg = async ({
+  year,
+  month,
+  day,
+}: {
+  year: number;
+  month: number;
+  day: number;
+}) =>
+  prisma.getCourt.findMany({
+    where: {
+      year,
+      month,
+      day,
+      hold_flg: false,
+    },
+    include: {
+      card: true,
+    },
+  });
