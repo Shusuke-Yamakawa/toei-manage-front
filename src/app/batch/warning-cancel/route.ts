@@ -20,7 +20,7 @@ export async function GET(request: Request) {
         `\n${card.user_nm}\n${month}/${day} ${from_time}-${to_time} ${court}`
     )
     .join('');
-  notify_line(msg);
+  if (msg) notify_line(msg);
   return new Response(JSON.stringify({ message: msg }), {
     headers: { 'Content-Type': 'application/json' },
   });
