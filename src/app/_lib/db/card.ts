@@ -35,6 +35,6 @@ export const findCardById = async (cardId: string) =>
 export const findCardCanDraw = async () =>
   prisma.card.findMany({
     where: {
-      AND: [{ available_flg: true }, { draw_flg: true }],
+      AND: [{ available_flg: true }, { draw_flg: true }, { note: '新システム' }],
     },
   });

@@ -4,7 +4,11 @@
 
 import { Button, Checkbox, Flex, Table } from '@mantine/core';
 import { FC, useState } from 'react';
+import axios from 'axios';
 import { Card } from '@/src/app/_lib/db/card';
+
+const favoriteAddDraw = async (id: string) =>
+  axios.put(`http://localhost:3003/card/api/byWeb/${id}`);
 
 type Props = {
   data: Card[];
@@ -12,6 +16,11 @@ type Props = {
 
 export const CardList: FC<Props> = ({ data }) => {
   const [selectedRows, setSelectedRows] = useState<number[]>([]);
+  const favoriteAdd = async () => {
+    for (const id of selectedRows) {
+      await favoriteAddDraw(String(id));
+    }
+  };
   const rows = data.map((d) => (
     <Table.Tr
       key={d.card_id}
@@ -41,7 +50,9 @@ export const CardList: FC<Props> = ({ data }) => {
   return (
     <Flex direction="column" gap="md" m="lg">
       <Button variant="light">削除</Button>
-      <Button variant="light">更新予定</Button>
+      <Button variant="light" onClick={favoriteAdd}>
+        お気に入り登録
+      </Button>
       <Table>
         <Table.Thead>
           <Table.Tr>
