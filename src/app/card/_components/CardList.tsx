@@ -49,14 +49,13 @@ export const CardList: FC<Props> = ({ data }) => {
   ));
   return (
     <Flex direction="column" gap="md" m="lg">
-      <Button variant="light">削除</Button>
       <Button variant="light" onClick={favoriteAdd}>
         お気に入り登録
       </Button>
       <Table>
         <Table.Thead>
           <Table.Tr>
-            <Table.Th>削除</Table.Th>
+            <Table.Th>選択</Table.Th>
             <Table.Th>カードID</Table.Th>
             <Table.Th>パスワード</Table.Th>
             <Table.Th>カード名義</Table.Th>

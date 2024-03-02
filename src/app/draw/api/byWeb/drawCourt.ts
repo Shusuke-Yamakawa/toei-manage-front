@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-loop-func */
 /* eslint-disable no-restricted-syntax */
 import { Page } from 'puppeteer';
-import { toeiPage, toeiPageNew } from '@/src/app/_lib/puppeteer';
-import { confirmExpired, login } from '@/src/app/_utils/login';
+import { toeiPageNew } from '@/src/app/_lib/puppeteer';
 import { currentDate } from '@/src/app/_utils/date';
 import { notify_line } from '@/src/app/_utils/line';
 import { findCardCanDraw, updateCardDrawFlg } from '@/src/app/_lib/db/card';
@@ -11,20 +10,37 @@ import { loginNew, logout } from '@/src/app/_utils/loginNew';
 
 export const dynamic = 'force-dynamic';
 
-const getNumberByCourt = (court: string): number => {
+const getValueByCourt = (court: string) => {
   switch (court) {
-    case '府中の森公園':
-      return 0;
-    case '小金井公園':
-      return 1;
     case '野川公園':
-      return 2;
+      return '1301260';
     case '井の頭恩賜公園':
-      return 3;
+      return '1301220';
+    case '小金井公園':
+      return '1301240';
     default:
       throw new Error('不正な公園を指定しています');
   }
 };
+
+// 行の値を示す（例: 'usedate-bheader-1'の'1'）
+const getTimeValue = (fromTime: number) => {
+  switch (fromTime) {
+    case 9:
+      return '1';
+    case 11:
+      return '2';
+    case 13:
+      return '3';
+    case 15:
+      return '4';
+    default:
+      throw new Error('不正な時間を指定しています');
+  }
+};
+
+// 列の値を示す（例: 'td[6]'の'6'）
+const dayValue = '6';
 
 const drawExec = async (
   page: Page,
@@ -52,19 +68,19 @@ const drawExec = async (
     msg += '抽選失敗\n';
     return msg;
   }
-  // ↓に反映させる
-  // const courtNumber = getNumberByCourt(court);
-  // await page.click(`input[type="radio"][value="${courtNumber}"]`);
+  const courtValue = getValueByCourt(court);
   await Promise.all([
     // 画面遷移まで待機する
     page.waitForNavigation(),
-    await page.click("button[onclick=\"doFavoriteEntry('130','1301260','12600010');\"]"),
+    await page.click(`button[onclick="doFavoriteEntry('130','${courtValue}','12600010');"]`),
   ]);
   const month = currentDate().month() + 1;
   const nextMonthYear = month === 12 ? currentDate().year() + 1 : currentDate().year();
   const nextMonth = month === 12 ? 1 : month + 1;
+  const timeValue = getTimeValue(fromTime);
   for (let i = 0; i < 2; i++) {
-    const xpath = '//*[@id="usedate-bheader-1"]/td[6]'; // 時間帯でheaderが変わる
+    // 必要に応じて次ページにする
+    const xpath = `//*[@id="usedate-bheader-${timeValue}"]/td[${dayValue}]`; // dayValueは実際に画面で確認して変更する
     await page.waitForXPath(xpath);
     const elements = await page.$x(xpath);
     await elements[0].click();
@@ -73,7 +89,7 @@ const drawExec = async (
       page.waitForNavigation(),
       await page.click('#btn-go'),
     ]);
-    // ダイアログでOKの処理はダイアログが出る直前に記述するグでOKの処理はダイアログが出る直前に記述する
+    // ダイアログでOKの処理はダイアログが出る直前に記述する
     page.once('dialog', async (dialog) => {
       await dialog.accept();
     });
@@ -121,7 +137,7 @@ const drawExec = async (
     '//*[@id="lottery-application"]/table/tbody/tr[1]/td[6]/text()[1]'
   );
   const timeText = await page.evaluate((e) => e.textContent, timeTextElements[0]);
-  msg += `利用日: ${dateText}, 時刻: ${timeText}, 公園・施設: ${facilityText}`;
+  msg += `${dateText}${timeText}${facilityText}`;
   return msg;
 };
 
@@ -133,7 +149,11 @@ export const drawCourt = async (param: {
   drawCount: number;
 }) => {
   const { day, fromTime, toTime, court, drawCount } = param;
-  const { page, browser } = await toeiPageNew();
+  const { page, browser } = await toeiPageNew({
+    headless: false,
+    slowMo: 20,
+    devtools: true,
+  });
   let msg = '【抽選設定】';
   const cardCanDraw = await findCardCanDraw();
 
@@ -141,7 +161,7 @@ export const drawCourt = async (param: {
     const { user_nm, card_id, password } = cardCanDraw[i];
     msg += `\n${user_nm}\n`;
     await loginNew(page, card_id, password);
-    // msg += await confirmExpired(page);
+    // msg += await confirmExpired(page); //2025/02辺りから適用する
     msg += await drawExec(page, {
       card_id,
       day,

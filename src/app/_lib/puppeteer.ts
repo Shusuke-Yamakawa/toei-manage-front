@@ -1,4 +1,4 @@
-import puppeteer from 'puppeteer';
+import puppeteer, { PuppeteerLaunchOptions } from 'puppeteer';
 
 export const TOEI_URL = 'https://yoyaku.sports.metro.tokyo.lg.jp/';
 export const TOEI_URL_NEW = 'https://kouen.sports.metro.tokyo.lg.jp/web/';
@@ -16,13 +16,8 @@ export const toeiPage = async () => {
   return { page, browser };
 };
 
-export const toeiPageNew = async () => {
-  const browser = await puppeteer.launch({
-    // headless: 'new',
-    headless: false,
-    slowMo: 20,
-    devtools: true,
-  });
+export const toeiPageNew = async (options: PuppeteerLaunchOptions = { headless: 'new' }) => {
+  const browser = await puppeteer.launch(options);
   const page = await browser.newPage();
   await page.goto(TOEI_URL_NEW);
 

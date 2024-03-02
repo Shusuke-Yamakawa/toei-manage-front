@@ -264,7 +264,11 @@ const checkAndReserveAvailableCourt = async (
 };
 
 export async function GET(request: Request) {
-  const { page, browser } = await toeiPageNew();
+  const { page, browser } = await toeiPageNew({
+    headless: false,
+    slowMo: 20,
+    devtools: true,
+  });
   const { searchParams } = new URL(request.url);
   const fromTime = searchParams.get('from');
   const toTime = searchParams.get('to');
