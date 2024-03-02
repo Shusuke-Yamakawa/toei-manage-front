@@ -7,18 +7,18 @@ import { sleep } from '@/src/app/_utils/util';
 
 export const dynamic = 'force-dynamic';
 
-const favoriteList = [
-  { key: '1301260', name: '野川', facility: '12600010' },
-  { key: '1301220', name: '井の頭', facility: '12200020' },
-  { key: '1301240', name: '小金井', facility: '12400020' },
+export const favoriteList = [
+  { key: '1301260', name: '野川公園', facility: '12600010' },
+  { key: '1301220', name: '井の頭恩賜公園', facility: '12200020' },
+  { key: '1301240', name: '小金井公園', facility: '12400020' },
 ] as const;
 
-const favoriteListReserve = [
-  { key: '1260', name: '野川', facility: '12600010' },
-  { key: '1220', name: '井の頭', facility: '12200020' },
-  { key: '1240', name: '小金井', facility: '12400020' },
-  { key: '1270', name: '府中', facility: '12700020' },
-  { key: '1230', name: '武蔵野中央', facility: '12300010' },
+export const favoriteListReserve = [
+  { key: '1260', name: '野川公園', facility: '12600010' },
+  { key: '1220', name: '井の頭恩賜公園', facility: '12200020' },
+  { key: '1240', name: '小金井公園', facility: '12400020' },
+  { key: '1270', name: '府中の森公園', facility: '12700020' },
+  { key: '1230', name: '武蔵野中央公園', facility: '12300010' },
 ];
 
 export const favoriteAddDraw = async (id: string) => {

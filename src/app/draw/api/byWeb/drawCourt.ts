@@ -7,20 +7,14 @@ import { notify_line } from '@/src/app/_utils/line';
 import { findCardCanDraw, updateCardDrawFlg } from '@/src/app/_lib/db/card';
 import { createDraw } from '@/src/app/_lib/db/draw';
 import { loginNew, logout } from '@/src/app/_utils/loginNew';
+import { favoriteList } from '@/src/app/card/api/byWeb/favoriteAdd';
+import { sleep } from '@/src/app/_utils/util';
 
 export const dynamic = 'force-dynamic';
 
-const getValueByCourt = (court: string) => {
-  switch (court) {
-    case '野川公園':
-      return '1301260';
-    case '井の頭恩賜公園':
-      return '1301220';
-    case '小金井公園':
-      return '1301240';
-    default:
-      throw new Error('不正な公園を指定しています');
-  }
+const findFavoriteByKey = (court: string) => {
+  const item = favoriteList.find((favorite) => favorite.name === court);
+  return item ? { key: item.key, facility: item.facility } : undefined;
 };
 
 // 行の値を示す（例: 'usedate-bheader-1'の'1'）
@@ -41,6 +35,7 @@ const getTimeValue = (fromTime: number) => {
 
 // 列の値を示す（例: 'td[6]'の'6'）
 const dayValue = '6';
+const nextWeekCounter = 1;
 
 const drawExec = async (
   page: Page,
@@ -68,18 +63,33 @@ const drawExec = async (
     msg += '抽選失敗\n';
     return msg;
   }
-  const courtValue = getValueByCourt(court);
+  const courtItem = findFavoriteByKey(court);
+  if (!courtItem) {
+    console.error('抽選お気に入り設定が間違ってます');
+    // eslint-disable-next-line consistent-return
+    return;
+  }
   await Promise.all([
     // 画面遷移まで待機する
     page.waitForNavigation(),
-    await page.click(`button[onclick="doFavoriteEntry('130','${courtValue}','12600010');"]`),
+    await page.click(
+      `button[onclick="doFavoriteEntry('130','${courtItem.key}','${courtItem.facility}');"]`
+    ),
   ]);
   const month = currentDate().month() + 1;
   const nextMonthYear = month === 12 ? currentDate().year() + 1 : currentDate().year();
   const nextMonth = month === 12 ? 1 : month + 1;
   const timeValue = getTimeValue(fromTime);
   for (let i = 0; i < 2; i++) {
-    // 必要に応じて次ページにする
+    for (let j = 0; j < nextWeekCounter; j++) {
+      await page.waitForSelector('#next-week', { visible: true });
+      // 初回画面表示時のみダブルクリックが必要なため制御を入れる
+      if (i === 0 && j === 0) {
+        await page.click('#next-week');
+      }
+      await page.click('#next-week');
+      await sleep(1000);
+    }
     const xpath = `//*[@id="usedate-bheader-${timeValue}"]/td[${dayValue}]`; // dayValueは実際に画面で確認して変更する
     await page.waitForXPath(xpath);
     const elements = await page.$x(xpath);
@@ -131,7 +141,9 @@ const drawExec = async (
     '//*[@id="lottery-application"]/table/tbody/tr[1]/td[4]/span[2]'
   );
   const facilityText = await page.evaluate((e) => e.textContent, facilityTextElements[0]);
-  const dateTextElements = await page.$x('//*[@id="lottery-application"]/table/tbody/tr[1]/td[4]');
+  const dateTextElements = await page.$x(
+    '//*[@id="lottery-application"]/table/tbody/tr[1]/td[5]/span[2]'
+  );
   const dateText = await page.evaluate((e) => e.textContent, dateTextElements[0]);
   const timeTextElements = await page.$x(
     '//*[@id="lottery-application"]/table/tbody/tr[1]/td[6]/text()[1]'
