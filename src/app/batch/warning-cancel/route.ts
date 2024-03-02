@@ -4,16 +4,27 @@ import { notify_line } from '@/src/app/_utils/line';
 
 export const dynamic = 'force-dynamic';
 
-// 5日後の予約で開催予定がないコートをラインに通知
+// 指定した日付の予約で開催予定がないコートをラインに通知
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const addDay = Number(searchParams.get('day'));
   const date = currentDate();
   const warningDate = date.add(addDay, 'day');
+  const warningOsawaDate = date.add(7, 'day');
   const year = warningDate.year();
   const month = warningDate.month() + 1;
   const day = warningDate.date();
-  const warningCourt = await findGetCourtByDateAndHoldFlg({ year, month, day });
+  const osawaYear = warningOsawaDate.year();
+  const osawaMonth = warningOsawaDate.month() + 1;
+  const osawaDay = warningOsawaDate.date();
+  const warningCourt = await findGetCourtByDateAndHoldFlg({
+    year,
+    month,
+    day,
+    osawaYear,
+    osawaMonth,
+    osawaDay,
+  });
   const msg = warningCourt
     .map(
       ({ card, from_time, to_time, court }) =>
