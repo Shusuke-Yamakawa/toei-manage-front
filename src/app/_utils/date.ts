@@ -36,3 +36,5 @@ export const checkHoliday = (year: number, month: number) => {
     }
   }
 };
+
+export const zeroPad = (num: number) => String(num).padStart(2, '0');
