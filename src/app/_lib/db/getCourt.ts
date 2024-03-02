@@ -137,17 +137,36 @@ export const findGetCourtByDateAndHoldFlg = async ({
   year,
   month,
   day,
+  osawaYear,
+  osawaMonth,
+  osawaDay,
 }: {
   year: number;
   month: number;
   day: number;
+  osawaYear: number;
+  osawaMonth: number;
+  osawaDay: number;
 }) =>
   prisma.getCourt.findMany({
     where: {
-      year,
-      month,
-      day,
-      hold_flg: false,
+      OR: [
+        {
+          year,
+          month,
+          day,
+          hold_flg: false,
+        },
+        {
+          year: osawaYear,
+          month: osawaMonth,
+          day: osawaDay,
+          hold_flg: false,
+          court: {
+            startsWith: '大沢',
+          },
+        },
+      ],
     },
     include: {
       card: true,
