@@ -66,6 +66,19 @@ export const findGetCourtById = async (id: number) =>
     },
   });
 
+export const findGetCourtMany = async () =>
+  prisma.getCourt.findMany({
+    include: { card: true },
+    orderBy: [
+      { year: 'asc' },
+      { month: 'asc' },
+      { day: 'asc' },
+      { from_time: 'asc' },
+      { court: 'asc' },
+      { card_id: 'asc' },
+    ],
+  });
+
 /**
  * 現在日付以降のコート取得情報を取得する
  * @param cardIds 指定すると指定したカードID以外の情報を取得する
