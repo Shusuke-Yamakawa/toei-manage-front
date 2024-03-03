@@ -2,24 +2,28 @@
 /* eslint-disable no-restricted-syntax */
 import { Page } from 'puppeteer';
 import { toeiPage } from '@/src/app/_lib/puppeteer';
-import { login } from '@/src/app/_utils/login';
 import { currentDate } from '@/src/app/_utils/date';
 import { notify_line } from '@/src/app/_utils/line';
 import { updateCardDrawFlg } from '@/src/app/_lib/db/card';
 import { findDrawNextMonthCourt, updateConfirmDrawFlg } from '@/src/app/_lib/db/draw';
 import { createGetCourt } from '@/src/app/_lib/db/getCourt';
+import { loginNew } from '@/src/app/_utils/loginNew';
 
 export const dynamic = 'force-dynamic';
 
 const confirmExec = async (page: Page) => {
+  await page.click('.nav-link.dropdown-toggle.m-auto.d-table-cell.align-middle');
   await Promise.all([
     // 画面遷移まで待機する
     page.waitForNavigation(),
-    await page.click('#goLotStatusList'),
+    await page.evaluate(() => {
+      doAction(document.form1, gLotWTransLotElectListAction); // エラーが出るが問題はない
+    }),
   ]);
 
   let confirmNumber = 0;
 
+  // ここからは14日以降に変更する
   try {
     const num = await page.$$eval('#lotStatusListItems tr', (elements) => elements.length);
     for (let i = 0; i < num; i++) {
@@ -69,7 +73,7 @@ export const drawCourtConfirm = async () => {
       await updateConfirmDrawFlg(id);
       continue;
     }
-    await login(page, card_id, password);
+    await loginNew(page, card_id, password);
     const getNumber = await confirmExec(page);
     await updateCardDrawFlg(card_id, true);
     await updateConfirmDrawFlg(id);
