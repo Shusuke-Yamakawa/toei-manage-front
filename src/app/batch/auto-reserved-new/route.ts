@@ -2,134 +2,154 @@
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-restricted-syntax */
 import { Page } from 'puppeteer';
-import { login } from '@/src/app/_utils/login';
 import { currentDate, getHolidays, zeroPad } from '@/src/app/_utils/date';
 import { notify_line } from '@/src/app/_utils/line';
 import { toeiPageNew } from '@/src/app/_lib/puppeteer';
 import dayjs from '@/src/app/_lib/dayjs';
 import { createGetCourt } from '@/src/app/_lib/db/getCourt';
+import { loginNew, logout } from '@/src/app/_utils/loginNew';
 
 export const dynamic = 'force-dynamic';
+type Court = { name: string; value: string };
 
 const TARGET_COURT = [
-  '1220', // 井の頭恩賜公園
-  '1260', // 野川公園
-  '1240', // 小金井公園
-  '1270', // 府中の森公園
-  '1230', // 武蔵野中央公園
-  // '1280', // '東大和南公園',
+  {
+    name: '井の頭恩賜公園',
+    value: '1220',
+  },
+  {
+    name: '野川公園',
+    value: '1260',
+  },
+  {
+    name: '小金井公園',
+    value: '1240',
+  },
+  {
+    name: '府中の森公園',
+    value: '1270',
+  },
+  {
+    name: '武蔵野中央公園',
+    value: '1230',
+  },
 ];
-const EXCLUDE_DAY: number[] = [];
+const EXCLUDE_DAY_LIST: number[] = [];
 
-const USER_ID = '86560751';
-const PASSWD = '19550223';
+const USER_ID = '10002097';
+const PASSWD = 'Ryouma2518';
 
-// const USER_ID = '87088869';
-// const PASSWD = '19900818';
+// const USER_ID = '10003974';
+// const PASSWD = 'Cycling0818@';
 
-const RETRY_USER_ID = '86329044';
-const RETRY_PASSWD = '19870513';
+const RETRY_USER_ID = '10001498';
+const RETRY_PASSWD = 'hagayuk01!';
 
 const GET_LIMIT_DAY = () => currentDate().add(5, 'day');
 const NOTIFY_OPEN_COURT = () => currentDate().add(5, 'day');
 
-let getDay: number = 0;
-
-const targetCourt = (openCourt: string): boolean => {
-  if (TARGET_COURT.includes(openCourt)) {
-    return true;
+let getDay = 0;
+let emptyCourt = { name: '', value: '' } satisfies Court;
+const getTimeZone = (fromTime: string) => {
+  switch (fromTime) {
+    case '9':
+      return '10';
+    case '11':
+      return '20';
+    case '13':
+      return '30';
+    case '15':
+      return '40';
+    default:
+      throw new Error('不正な時間を指定しています');
   }
-  return false;
-};
-
-const isTargetCourtAvailable = async (
-  day: number,
-  emptyCourts: (string | null)[],
-  week: string | null
-) => {
-  if (emptyCourts.length > 0) {
-    for (const emptyCourt of emptyCourts) {
-      // 指定したコートの場合のみ表示させる
-      if (targetCourt(emptyCourt!)) {
-        console.log('空きコート: ', emptyCourt);
-        getDay = day;
-        return `\n${day}(${week}) : ${emptyCourt}\n空きコートあり！！`;
-      }
-    }
-  }
-  return '';
 };
 
 const searchOpenCourt = async (
   page: Page,
   fromTime: string,
-  toTime: string,
   year: number,
   month: number,
   day: number,
-  court: string
+  courtValue: string
 ) => {
-  // 現在日時が入るのでいらないかも
-  // await page.evaluate(() => {
-  //   const input = document.getElementById('daystart-home') as HTMLInputElement;
-  //   input.value = '';
-  // });
-  // await page.type('#daystart-home', '2024-03-15');
-  await page.type('#daystart-home', String(year));
-  // ここがキモ。右矢印押すことで、月の欄に移動します。
+  const yearStr = String(year);
+  const monthStr = zeroPad(month);
+  const dayStr = zeroPad(day);
+  await page.type('#daystart-home', yearStr);
+  // 右矢印押すことで、月の欄に移動します。
   await page.keyboard.press('ArrowRight');
-  await page.type('#daystart-home', zeroPad(month));
+  await page.type('#daystart-home', monthStr);
   await page.keyboard.press('ArrowRight');
-  await page.type('#daystart-home', zeroPad(day));
+  await page.type('#daystart-home', dayStr);
   await page.select('#purpose-home', '1000_1030');
   await page.waitForSelector('#bname-home:not([disabled])');
-  await page.select('#bname-home', court);
+  await page.select('#bname-home', courtValue);
   await Promise.all([
     // 画面遷移まで待機する
     page.waitForNavigation(),
     page.click('#btn-go'),
   ]);
-  await page.select('select[name="layoutChildBody:childForm:year"]', `${year}`);
-  await page.select('select[name="layoutChildBody:childForm:month"]', `${month}`);
-  await page.select('select[name="layoutChildBody:childForm:day"]', `${day}`);
-  await page.select('select[name="layoutChildBody:childForm:sHour"]', `${fromTime}`);
-  await page.select('select[name="layoutChildBody:childForm:eHour"]', `${toTime}`);
-  await page.click('input[value="2-1000-1030"]');
-  await Promise.all([
-    // 画面遷移まで待機する
-    page.waitForNavigation(),
-    page.click('#srchBtn'),
-  ]);
-  // 空きコート名の取得
-  const emptyCourts = await page.$$eval('#bnamem', (elements) =>
-    elements.map((element) => element.textContent)
+  const timeZone = getTimeZone(fromTime);
+  // ここで空きコート一覧が出るなら、日付ループはしない。
+  const altText = await page.evaluate(
+    // eslint-disable-next-line @typescript-eslint/no-shadow
+    (yearStr, monthStr, dayStr, timeZone) => {
+      const elements = document.evaluate(
+        `//*[@id='${yearStr}${monthStr}${dayStr}_${timeZone}']/div/img`,
+        document,
+        null,
+        XPathResult.FIRST_ORDERED_NODE_TYPE,
+        null
+      );
+      if (elements.singleNodeValue) {
+        return elements.singleNodeValue.alt; // img要素のalt属性を返す
+      }
+      return ''; // 要素が見つからない場合は空文字を返す
+    },
+    yearStr,
+    monthStr,
+    dayStr,
+    timeZone
   );
-  return emptyCourts;
+  console.log('altText: ', altText);
+  return altText !== '休館日'; // ここは変える そのまま予約しても良いかも
 };
 
-const searchByTargetDay = async (
-  page: Page,
-  fromTime: string,
-  toTime: string,
-  year: number,
-  month: number
-) => {
+const searchByTargetDay = async (page: Page, fromTime: string, year: number, month: number) => {
   const targetDayList = getHolidays(year, month, NOTIFY_OPEN_COURT());
-  // テスト用
+  // テスト用に追加する日付
   // targetDayList.unshift(26);
-  const msg = '';
-  for (const day of targetDayList) {
-    if (EXCLUDE_DAY.includes(day)) continue;
-    console.log('通過したday: ', day);
-    for (const court of TARGET_COURT) {
-      const emptyCourts = await searchOpenCourt(page, fromTime, toTime, year, month, day, court);
+  let msg = '';
+  const targetDayListFiltered = targetDayList.filter((day) => !EXCLUDE_DAY_LIST.includes(day));
+  console.log('targetDayListFilterd: ', targetDayListFiltered);
+  for (const court of TARGET_COURT) {
+    // ループじゃなくて良いかもしれない targetDayListを渡すだけでいいかも
+    for (const day of targetDayList) {
+      console.log('day: ', day);
+      const isOpenCourt = await searchOpenCourt(page, fromTime, year, month, day, court.value);
+      console.log('isOpenCourt: ', isOpenCourt);
+      if (isOpenCourt) {
+        const weekElements = await page.$x('//*[@id="head_d1_s0_0"]');
+        const week = await page.evaluate((element) => element.textContent, weekElements[0]);
+        msg = `\n${day}(${week}) : ${court.name}\n空きコートあり！！`;
+        getDay = day;
+        emptyCourt = court;
+        return msg;
+      }
+      await Promise.all([
+        // 画面遷移まで待機する
+        page.waitForNavigation(),
+        page.click('#nav-home'), // 不要になる気がする
+      ]);
     }
-    const week = await page.$eval('#weekLabel--', (item) => item.textContent);
-    if (msg.indexOf('空きコートあり！！') !== -1) {
-      return msg;
-    }
+    await Promise.all([
+      // 画面遷移まで待機する
+      page.waitForNavigation(),
+      page.click('#nav-home'),
+    ]);
   }
-  return msg;
+  return '';
 };
 
 const reserveCourt = async (
@@ -139,66 +159,56 @@ const reserveCourt = async (
   toTime: string,
   year: number,
   month: number,
-  emptyCourts: (string | null)[],
+  emptyCourts: Court,
   userId: string
 ) => {
-  if (emptyCourts.length === 0) return msg;
-  for (const emptyCourt of emptyCourts) {
-    // 指定したコートが存在する場合、予約する
-    if (targetCourt(emptyCourt!)) {
-      console.log('空きコート:予約前 ', emptyCourt);
-      const emptyStateIcon = await page.$('img#emptyStateIcon[alt="空き"]');
-      // 最初に見つかったimg要素をクリック
-      if (emptyStateIcon) {
-        await emptyStateIcon.click();
-      }
-      await Promise.all([
-        // 画面遷移まで待機する
-        page.waitForNavigation(),
-        page.click('#doReserve'),
-      ]);
-      try {
-        const courtName = await page.$eval('#bnamem', (item) => item.textContent);
-        const toTimeWeb = await page.$eval('#etimeLabel', (element) => element.textContent);
-        await Promise.all([
-          // 画面遷移まで待機する
-          page.waitForNavigation(),
-          page.click('#apply'),
-        ]);
-        const applyConf = await page.$$('#apply');
-        if (applyConf.length > 0) {
-          msg += '\n重複してるのでリトライ';
-          await Promise.all([
-            // 画面遷移まで待機する
-            page.waitForNavigation(),
-            await page.click('input[value="ログアウト"]'),
-          ]);
-          // eslint-disable-next-line @typescript-eslint/no-use-before-define
-          msg = await reserveCourtController(page, msg, fromTime, toTime, year, month, true);
-          return msg;
-        }
-        msg += `\n${courtName}を予約`;
-        const toTimeDb = toTimeWeb!.match(/(\d+)/)![1];
-
-        // DBに登録する
-        await createGetCourt({
-          card_id: userId,
-          year,
-          month,
-          day: getDay,
-          from_time: Number(fromTime),
-          to_time: Number(toTimeDb),
-          court: courtName!,
-        });
-        return msg;
-      } catch (error) {
-        console.log('予約失敗error: ', error);
-        msg += '\n予約取れず';
-        return msg;
-      }
+  console.log('空きコート:予約前 ', emptyCourts.name);
+  const yearStr = String(year);
+  const monthStr = zeroPad(month);
+  const dayStr = zeroPad(getDay);
+  const timeZone = getTimeZone(fromTime);
+  const xpath = `//*[@id='${yearStr}${monthStr}${dayStr}_${timeZone}']/div/img`;
+  await page.waitForXPath(xpath);
+  const elements = await page.$x(xpath);
+  await elements[0].click();
+  await Promise.all([
+    // 画面遷移まで待機する
+    page.waitForNavigation(),
+    page.click('#btn-go'),
+  ]);
+  try {
+    // const courtName = await page.$eval('#bnamem', (item) => item.textContent);
+    // const toTimeWeb = await page.$eval('#etimeLabel', (element) => element.textContent);
+    await Promise.all([
+      // 画面遷移まで待機する
+      page.waitForNavigation(),
+      page.click('#apply'),
+    ]);
+    const applyConf = await page.$$('#apply');
+    if (applyConf.length > 0) {
+      msg += '\n重複してるのでリトライ';
+      await logout(page);
+      // eslint-disable-next-line @typescript-eslint/no-use-before-define
+      msg = await reserveCourtController(page, msg, fromTime, toTime, year, month, true);
+      return msg;
     }
+    msg += `\n${emptyCourts.name}を予約`;
+    // DBに登録する
+    await createGetCourt({
+      card_id: userId,
+      year,
+      month,
+      day: getDay,
+      from_time: Number(fromTime),
+      to_time: Number(toTime),
+      court: emptyCourts.name,
+    });
+    return msg;
+  } catch (error) {
+    console.log('予約失敗error: ', error);
+    msg += '\n予約取れず';
+    return msg;
   }
-  return msg;
 };
 
 const reserveCourtController = async (
@@ -217,44 +227,11 @@ const reserveCourtController = async (
     userId = RETRY_USER_ID;
     password = RETRY_PASSWD;
   }
-  await login(page, userId, password);
-  const emptyCourts = await searchOpenCourt(
-    page,
-    fromTime,
-    toTime,
-    year,
-    month,
-    getDay,
-    'getCourtを残しておく'
-  );
-  msg = await reserveCourt(page, msg, fromTime, toTime, year, month, emptyCourts, userId);
-  // 次のページがある場合実行する
-  while (true) {
-    try {
-      await Promise.all([
-        // 画面遷移まで待機する
-        page.waitForNavigation(),
-        page.click('#goNextPager'),
-      ]);
-      const emptyCourtsNextPage = await page.$$eval('#bnamem', (elements) =>
-        elements.map((element) => element.textContent)
-      );
-      msg = await reserveCourt(
-        page,
-        msg,
-        fromTime,
-        toTime,
-        year,
-        month,
-        emptyCourtsNextPage,
-        userId
-      );
-    } catch (NoSuchElementException) {
-      // 次のページが押せなくなったらループから抜ける
-      break;
-    }
-  }
-
+  await loginNew(page, userId, password);
+  const isOpenCourt = await searchOpenCourt(page, fromTime, year, month, getDay, emptyCourt.value);
+  console.log('isOpenCourt: ', isOpenCourt);
+  if (!isOpenCourt) return msg;
+  msg = await reserveCourt(page, msg, fromTime, toTime, year, month, emptyCourt, userId);
   return msg;
 };
 
@@ -267,7 +244,6 @@ const checkAndReserveAvailableCourt = async (
   month: number,
   retry: boolean
 ) => {
-  if (msg.indexOf('空きコートあり！！') === -1) return msg;
   const targetDay = dayjs(`${year}-${month}-${getDay}`);
   if (targetDay.isAfter(GET_LIMIT_DAY())) {
     msg = await reserveCourtController(page, msg, fromTime, toTime, year, month, retry);
@@ -290,22 +266,26 @@ export async function GET(request: Request) {
   const month = date.month() + 1; // month()の結果は0から始まるため、1を追加します
   const day = date.date();
   let msg = `今月${fromTime}-${toTime}時の空きテニスコート`;
-  msg += await searchByTargetDay(page, fromTime!, toTime!, year, month);
-  msg = await checkAndReserveAvailableCourt(page, msg, fromTime!, toTime!, year, month, false);
+  msg += await searchByTargetDay(page, fromTime!, year, month);
+  if (msg.indexOf('空きコートあり！！') !== -1) {
+    msg = await checkAndReserveAvailableCourt(page, msg, fromTime!, toTime!, year, month, false);
+  }
   if (day > 21) {
     msg += `来月${fromTime}-${toTime}時の空きテニスコート`;
     const nextMonthYear = month === 12 ? year + 1 : year;
     const nextMonth = month === 12 ? 1 : month + 1;
-    msg += await searchByTargetDay(page, fromTime!, toTime!, nextMonthYear, nextMonth);
-    msg = await checkAndReserveAvailableCourt(
-      page,
-      msg,
-      fromTime!,
-      toTime!,
-      nextMonthYear,
-      nextMonth,
-      false
-    );
+    msg += await searchByTargetDay(page, fromTime!, nextMonthYear, nextMonth);
+    if (msg.indexOf('空きコートあり！！') !== -1) {
+      msg = await checkAndReserveAvailableCourt(
+        page,
+        msg,
+        fromTime!,
+        toTime!,
+        nextMonthYear,
+        nextMonth,
+        false
+      );
+    }
   }
   console.log('最終メッセージ', msg);
 
