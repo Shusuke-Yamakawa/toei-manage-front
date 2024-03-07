@@ -57,7 +57,7 @@ export const favoriteAddDraw = async (id: string) => {
       doAction(document.form1, gLotWTransLotFavoriteInfoAction); // エラーが出るが問題はない
     }),
   ]);
-  sleep(2000);
+  await sleep(2000);
 
   await logout(page);
 
@@ -102,7 +102,7 @@ export const favoriteAddReserve = async (id: string) => {
       doAction(document.form1, gRsvWTransFavorite2InfoAction); // エラーが出るが問題はない
     }),
   ]);
-  sleep(2000);
+  await sleep(2000);
 
   await logout(page);
 
