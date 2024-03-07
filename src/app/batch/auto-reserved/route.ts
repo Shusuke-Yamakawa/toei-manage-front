@@ -186,6 +186,7 @@ const reserveCourt = async (
           from_time: Number(fromTime),
           to_time: Number(toTimeDb),
           court: courtName!,
+          reserve_no: '',
         });
         return msg;
       } catch (error) {

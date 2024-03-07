@@ -12,6 +12,8 @@ export type GetCourtIncludeEntry = {
   }[];
 };
 
+// TODO どこかのタイミングでキーを入れたい
+// @@unique(fields: [reserve_no], name: "reserve_no_key")
 export type GetCourt = {
   card_id: string;
   year: number;
@@ -20,6 +22,7 @@ export type GetCourt = {
   from_time: number;
   to_time: number;
   court: string;
+  reserve_no: string;
   public_flg?: boolean;
   hold_flg?: boolean;
 };

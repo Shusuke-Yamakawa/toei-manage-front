@@ -19,6 +19,7 @@ model card {
   draws         draw[]
   courts        getCourt[]
   entries       entry[]
+  guests        guest[]
 }
 
 model draw {
@@ -56,6 +57,7 @@ model getCourt {
   from_time Int
   to_time   Int
   court     String
+  reserve_no String @default("")
   public_flg  Boolean    @default(false)
   hold_flg  Boolean    @default(false)
   updatedAt DateTime @updatedAt
@@ -84,7 +86,9 @@ model guest {
   id        Int    @id @default(autoincrement())
   guest_nm  String
   court_id  Int
+  invited_card_id String
   updatedAt DateTime @updatedAt
 
   getCourt  getCourt  @relation(fields: [court_id], references: [id])
+  card      card      @relation(fields: [invited_card_id], references: [card_id])
 }
