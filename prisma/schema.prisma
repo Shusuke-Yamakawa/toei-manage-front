@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -32,7 +32,7 @@ model draw {
   to_time     Int
   court       String
   confirm_flg Boolean
-  card        card    @relation(fields: [card_id], references: [card_id])
+  card        card    @relation(fields: [card_id], references: [card_id], map: "draw_card_id_fk")
 
   @@index([card_id], map: "draw_card_id_fkey")
 }
@@ -61,7 +61,7 @@ model getCourt {
   public_flg  Boolean    @default(false)
   hold_flg  Boolean    @default(false)
   updatedAt DateTime @updatedAt
-  card      card   @relation(fields: [card_id], references: [card_id])
+  card      card   @relation(fields: [card_id], references: [card_id], map: "getCourt_card_id_fk")
   entries   entry[]
   guests    guest[]
 
