@@ -8,62 +8,25 @@ import { toeiPageNew } from '@/src/app/_lib/puppeteer';
 import dayjs from '@/src/app/_lib/dayjs';
 import { createGetCourt } from '@/src/app/_lib/db/getCourt';
 import { loginNew, logout } from '@/src/app/_utils/loginNew';
+import {
+  EXCLUDE_DAY_LIST,
+  TARGET_COURT,
+  USER_ID,
+  PASSWD,
+  RETRY_USER_ID,
+  RETRY_PASSWD,
+} from '@/src/app/batch/auto-reserved-new/auto-reserve.const';
+import {
+  NOTIFY_OPEN_COURT,
+  GET_LIMIT_DAY,
+  getTimeZone,
+} from '@/src/app/batch/auto-reserved-new/auto-reserve.util';
 
 export const dynamic = 'force-dynamic';
 type Court = { name: string; value: string };
 
-const TARGET_COURT = [
-  {
-    name: '井の頭恩賜公園',
-    value: '1220',
-  },
-  {
-    name: '野川公園',
-    value: '1260',
-  },
-  {
-    name: '小金井公園',
-    value: '1240',
-  },
-  {
-    name: '府中の森公園',
-    value: '1270',
-  },
-  {
-    name: '武蔵野中央公園',
-    value: '1230',
-  },
-];
-const EXCLUDE_DAY_LIST: number[] = [];
-
-const USER_ID = '10002097';
-const PASSWD = 'Ryouma2518';
-
-// const USER_ID = '10003974';
-// const PASSWD = 'Cycling0818@';
-
-const RETRY_USER_ID = '10001498';
-const RETRY_PASSWD = 'hagayuk01!';
-
-const GET_LIMIT_DAY = () => currentDate().add(5, 'day');
-const NOTIFY_OPEN_COURT = () => currentDate().add(5, 'day');
-
 let getDay = 0;
 let emptyCourt = { name: '', value: '' } satisfies Court;
-const getTimeZone = (fromTime: string) => {
-  switch (fromTime) {
-    case '9':
-      return '10';
-    case '11':
-      return '20';
-    case '13':
-      return '30';
-    case '15':
-      return '40';
-    default:
-      throw new Error('不正な時間を指定しています');
-  }
-};
 
 const searchOpenCourt = async (
   page: Page,
