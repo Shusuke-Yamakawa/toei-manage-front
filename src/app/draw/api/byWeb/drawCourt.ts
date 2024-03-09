@@ -180,11 +180,12 @@ export const drawCourt = async (param: {
   drawCount: number;
 }) => {
   const { day, fromTime, toTime, court, drawCount } = param;
-  const { page, browser } = await toeiPageNew({
-    // headless: false,
-    // slowMo: 20,
-    // devtools: true,
-  });
+  // {
+  //   headless: false,
+  //   slowMo: 20,
+  //   devtools: true,
+  // }
+  const { page, browser } = await toeiPageNew();
   let msg = '【抽選設定】';
   const cardCanDraw = await findCardCanDraw();
 
