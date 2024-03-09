@@ -25,9 +25,6 @@ import {
 export const dynamic = 'force-dynamic';
 type Court = { name: string; value: string };
 
-let getDay = 0;
-let emptyCourt = { name: '', value: '' } satisfies Court;
-
 const searchOpenCourt = async (
   page: Page,
   fromTime: string,
@@ -76,7 +73,7 @@ const searchOpenCourt = async (
     timeZone
   );
   console.log('altText: ', altText);
-  return altText !== '休館日'; // ここは変える そのまま予約しても良いかも
+  return altText === '休館日'; // ここは変える そのまま予約しても良いかも
 };
 
 const searchByTargetDay = async (page: Page, fromTime: string, year: number, month: number) => {
@@ -96,9 +93,7 @@ const searchByTargetDay = async (page: Page, fromTime: string, year: number, mon
         const weekElements = await page.$x('//*[@id="head_d1_s0_0"]');
         const week = await page.evaluate((element) => element.textContent, weekElements[0]);
         msg = `\n${day}(${week}) : ${court.name}\n空きコートあり！！`;
-        getDay = day;
-        emptyCourt = court;
-        return msg;
+        return { msg, getDay: day, emptyCourt: court };
       }
       await Promise.all([
         // 画面遷移まで待機する
@@ -112,7 +107,7 @@ const searchByTargetDay = async (page: Page, fromTime: string, year: number, mon
       page.click('#nav-home'),
     ]);
   }
-  return '';
+  return { msg, getDay: 0, emptyCourt: { name: '', value: '' } };
 };
 
 const reserveCourt = async (
@@ -122,10 +117,11 @@ const reserveCourt = async (
   toTime: string,
   year: number,
   month: number,
-  emptyCourts: Court,
+  getDay: number,
+  emptyCourt: Court,
   userId: string
 ) => {
-  console.log('空きコート:予約前 ', emptyCourts.name);
+  console.log('空きコート:予約前 ', emptyCourt.name);
   const yearStr = String(year);
   const monthStr = zeroPad(month);
   const dayStr = zeroPad(getDay);
@@ -154,11 +150,21 @@ const reserveCourt = async (
         msg += '\n重複してるのでリトライ';
         await logout(page);
         // eslint-disable-next-line @typescript-eslint/no-use-before-define
-        msg = await reserveCourtController(page, msg, fromTime, toTime, year, month, true);
+        msg = await reserveCourtController(
+          page,
+          msg,
+          fromTime,
+          toTime,
+          year,
+          month,
+          getDay,
+          emptyCourt,
+          true
+        );
       }
       return msg;
     }
-    msg += `\n${emptyCourts.name}を予約`;
+    msg += `\n${emptyCourt.name}を予約`;
     // DBに登録する
     // TODO 予約者番号も入るようにする
     await createGetCourt({
@@ -168,7 +174,7 @@ const reserveCourt = async (
       day: getDay,
       from_time: Number(fromTime),
       to_time: Number(toTime),
-      court: emptyCourts.name,
+      court: emptyCourt.name,
       reserve_no: '',
     });
     return msg;
@@ -186,6 +192,8 @@ const reserveCourtController = async (
   toTime: string,
   year: number,
   month: number,
+  getDay: number,
+  emptyCourt: Court,
   retry: boolean
 ) => {
   console.log('reserve動きます！');
@@ -199,7 +207,7 @@ const reserveCourtController = async (
   const isOpenCourt = await searchOpenCourt(page, fromTime, year, month, getDay, emptyCourt.value);
   console.log('isOpenCourt: ', isOpenCourt);
   if (!isOpenCourt) return msg;
-  msg = await reserveCourt(page, msg, fromTime, toTime, year, month, emptyCourt, userId);
+  msg = await reserveCourt(page, msg, fromTime, toTime, year, month, getDay, emptyCourt, userId);
   return msg;
 };
 
@@ -210,12 +218,24 @@ const checkAndReserveAvailableCourt = async (
   toTime: string,
   year: number,
   month: number,
+  getDay: number,
+  emptyCourt: Court,
   retry: boolean
 ) => {
   const targetDay = dayjs(`${year}-${month}-${getDay}`);
 
   if (targetDay.isAfter(GET_LIMIT_DAY())) {
-    msg = await reserveCourtController(page, msg, fromTime, toTime, year, month, retry);
+    msg = await reserveCourtController(
+      page,
+      msg,
+      fromTime,
+      toTime,
+      year,
+      month,
+      getDay,
+      emptyCourt,
+      retry
+    );
   }
   await notify_line(msg, 'Qeuzd60OWvkoG0ZbctkpkkWFb9fUmYJYcTDBujxypsV');
   return msg;
@@ -235,16 +255,36 @@ export async function GET(request: Request) {
   const month = date.month() + 1; // month()の結果は0から始まるため、1を追加します
   const day = date.date();
   let msg = `今月${fromTime}-${toTime}時の空きテニスコート`;
-  msg += await searchByTargetDay(page, fromTime!, year, month);
+  const {
+    msg: searchMsg,
+    getDay,
+    emptyCourt,
+  } = await searchByTargetDay(page, fromTime!, year, month);
+  msg += searchMsg;
   if (msg.indexOf('空きコートあり！！') !== -1) {
-    msg = await checkAndReserveAvailableCourt(page, msg, fromTime!, toTime!, year, month, false);
+    msg = await checkAndReserveAvailableCourt(
+      page,
+      msg,
+      fromTime!,
+      toTime!,
+      year,
+      month,
+      getDay,
+      emptyCourt,
+      false
+    );
   }
   if (day > 21) {
     msg += `来月${fromTime}-${toTime}時の空きテニスコート`;
     const nextMonthYear = month === 12 ? year + 1 : year;
     const nextMonth = month === 12 ? 1 : month + 1;
-    msg += await searchByTargetDay(page, fromTime!, nextMonthYear, nextMonth);
-    if (msg.indexOf('空きコートあり！！') !== -1) {
+    const {
+      msg: searchMsgNext,
+      getDay: getDayNext,
+      emptyCourt: emptyCourtNext,
+    } = await searchByTargetDay(page, fromTime!, nextMonthYear, nextMonth);
+    msg += searchMsgNext;
+    if (searchMsgNext.indexOf('空きコートあり！！') !== -1) {
       msg = await checkAndReserveAvailableCourt(
         page,
         msg,
@@ -252,6 +292,8 @@ export async function GET(request: Request) {
         toTime!,
         nextMonthYear,
         nextMonth,
+        getDayNext,
+        emptyCourtNext,
         false
       );
     }
