@@ -186,14 +186,18 @@ const reserveCourt = async (
     ]);
     const applyConf = await page.$$('#apply');
     if (applyConf.length > 0) {
-      msg += '\n重複してるのでリトライ';
-      await logout(page);
-      // eslint-disable-next-line @typescript-eslint/no-use-before-define
-      msg = await reserveCourtController(page, msg, fromTime, toTime, year, month, true);
+      const retryTarget = emptyCourt.name === '井の頭恩賜公園' || emptyCourt.name === '野川公園';
+      if (retryTarget) {
+        msg += '\n重複してるのでリトライ';
+        await logout(page);
+        // eslint-disable-next-line @typescript-eslint/no-use-before-define
+        msg = await reserveCourtController(page, msg, fromTime, toTime, year, month, true);
+      }
       return msg;
     }
     msg += `\n${emptyCourts.name}を予約`;
     // DBに登録する
+    // TODO 予約者番号も入るようにする
     await createGetCourt({
       card_id: userId,
       year,
@@ -202,6 +206,7 @@ const reserveCourt = async (
       from_time: Number(fromTime),
       to_time: Number(toTime),
       court: emptyCourts.name,
+      reserve_no: '',
     });
     return msg;
   } catch (error) {
@@ -245,6 +250,7 @@ const checkAndReserveAvailableCourt = async (
   retry: boolean
 ) => {
   const targetDay = dayjs(`${year}-${month}-${getDay}`);
+
   if (targetDay.isAfter(GET_LIMIT_DAY())) {
     msg = await reserveCourtController(page, msg, fromTime, toTime, year, month, retry);
   }
