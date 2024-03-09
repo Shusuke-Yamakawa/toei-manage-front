@@ -93,3 +93,16 @@ model guest {
   getCourt  getCourt  @relation(fields: [court_id], references: [id])
   card      card      @relation(fields: [invited_card_id], references: [card_id])
 }
+
+model mitakaCourt {
+  id        Int    @id @default(autoincrement())
+  year      Int
+  month     Int
+  day       Int
+  from_time Int
+  to_time   Int
+  detect_count     Int
+  updatedAt DateTime @updatedAt
+
+  @@unique(fields: [year, month, day, from_time, to_time], name: "mitaka_court")
+}
