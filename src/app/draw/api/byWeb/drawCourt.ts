@@ -33,9 +33,45 @@ const getTimeValue = (fromTime: number) => {
   }
 };
 
+// ここは実行前に変更する
 // 列の値を示す（例: 'td[6]'の'6'）
-const dayValue = '6';
-const nextWeekCounter = 1;
+const dayValue = '7';
+const nextWeekCounter = 0;
+
+const submitApplication = async (page: Page, i: number) => {
+  await page.select('#apply', `${i + 1}-1`);
+
+  // ダイアログでOKの処理はダイアログが出る直前に記述
+  page.once('dialog', async (dialog) => {
+    await dialog.accept();
+  });
+
+  await Promise.all([
+    page.waitForNavigation(),
+    page.click('#btn-go'), // 抽選申し込み
+  ]);
+
+  if (i === 0) {
+    await Promise.all([page.waitForNavigation(), page.click('#btn-light')]);
+  }
+  // reCAPTCHAがあるかどうかをチェック
+  const isRecaptchaVisible = await page.evaluate(
+    () =>
+      // ここにreCAPTCHAのチェックを行うコードを追加
+      // 例えば、reCAPTCHAのiframeが存在するかどうかを確認
+      document.querySelector('iframe[src*="recaptcha"]') !== null
+  );
+
+  if (isRecaptchaVisible) {
+    console.log('solveRecaptchasが火をふくぞ');
+    // reCAPTCHAを解決
+    await page.solveRecaptchas();
+    console.log('solveRecaptchasがやった');
+
+    // 再度submitApplicationを呼び出す（必要な処理に応じて）
+    await submitApplication(page, i); // 再帰的に呼び出し、必要に応じてループの条件を調整してください
+  }
+};
 
 const drawExec = async (
   page: Page,
@@ -99,24 +135,7 @@ const drawExec = async (
       page.waitForNavigation(),
       await page.click('#btn-go'),
     ]);
-    // ダイアログでOKの処理はダイアログが出る直前に記述する
-    page.once('dialog', async (dialog) => {
-      await dialog.accept();
-    });
-    await page.select('#apply', `${i + 1}-1`);
-    await Promise.all([
-      // 画面遷移まで待機する
-      page.waitForNavigation(),
-      await page.click('#btn-go'),
-    ]);
-
-    if (i === 0) {
-      await Promise.all([
-        // 画面遷移まで待機する
-        page.waitForNavigation(),
-        await page.click('#btn-light'),
-      ]);
-    }
+    await submitApplication(page, i);
     await createDraw({
       card_id,
       year: nextMonthYear,
@@ -162,9 +181,9 @@ export const drawCourt = async (param: {
 }) => {
   const { day, fromTime, toTime, court, drawCount } = param;
   const { page, browser } = await toeiPageNew({
-    headless: false,
-    slowMo: 20,
-    devtools: true,
+    // headless: false,
+    // slowMo: 20,
+    // devtools: true,
   });
   let msg = '【抽選設定】';
   const cardCanDraw = await findCardCanDraw();
