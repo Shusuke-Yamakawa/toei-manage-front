@@ -26,6 +26,9 @@ export const getHolidays = (year: number, month: number, limitDay: dayjs.Dayjs) 
 
 export const currentDate = () => dayjs().tz();
 
+export const getTargetDay = (year: number, month: number, day: number) =>
+  dayjs(new Date(year, month - 1, day));
+
 export const checkHoliday = (year: number, month: number) => {
   const holidays = new Holidays('JP');
   const startDate = dayjs(`${year}-${month}-01`);

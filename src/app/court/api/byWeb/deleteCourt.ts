@@ -13,6 +13,7 @@ import { findCardById } from '@/src/app/_lib/db/card';
 import { notify_line } from '@/src/app/_utils/line';
 import { deleteEntryByIds } from '@/src/app/_lib/db/entry';
 import { deleteGuestByIds, findGuestByCourtId } from '@/src/app/_lib/db/guest';
+import { currentDate, getTargetDay } from '@/src/app/_utils/date';
 
 export const dynamic = 'force-dynamic';
 
@@ -91,7 +92,10 @@ const getCourtCancel = async (
 export const deleteCourt = async (id: number) => {
   const { page, browser } = await toeiPage();
   const getCourt = await findGetCourtById(id);
-  if (getCourt?.hold_flg) {
+  const { year, month, day } = getCourt!;
+  const targetDate = getTargetDay(year, month, day);
+  const isFutureDate = targetDate.isAfter(currentDate(), 'day');
+  if (isFutureDate && getCourt?.hold_flg) {
     console.log('開催予定のためキャンセルできません');
     return false;
   }
