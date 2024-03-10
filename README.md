@@ -7,8 +7,9 @@ crontab -e で以下のように記載すれば良い
 * * * * * curl "http://localhost:3003/batch/auto-reserved?from=11&to=13"
 * * * * * curl "http://localhost:3003/batch/auto-reserved?from=13&to=15"
 * * * * * curl "http://localhost:3003/batch/auto-reserved?from=15&to=17"
+*/3 * * * * curl "http://localhost:3003/batch/auto-reserved-mitaka"
 0 21 * * * curl "http://localhost:3003/batch/warning-cancel?day=5"
-0 8 * * * curl "http://localhost:3003/batch/warning-cancel?day=4"
+30 9 * * * curl "http://localhost:3003/batch/warning-cancel?day=4"
 ```
 
 # db 関連
