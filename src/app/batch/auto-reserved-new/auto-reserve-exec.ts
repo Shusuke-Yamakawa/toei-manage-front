@@ -1,7 +1,7 @@
 /* eslint-disable no-param-reassign */
 import dayjs from 'dayjs';
 import { Page } from 'puppeteer';
-import { createGetCourt } from '@/src/app/_lib/db/getCourt';
+import { createGetCourt, findGetCourtByDate } from '@/src/app/_lib/db/getCourt';
 import { zeroPad } from '@/src/app/_utils/date';
 import { notify_line } from '@/src/app/_utils/line';
 import { logout, loginNew } from '@/src/app/_utils/loginNew';
@@ -11,10 +11,10 @@ import {
   PASSWD,
   RETRY_USER_ID,
   RETRY_PASSWD,
+  DESIRED_RESERVATION_DATE_LIST,
 } from '@/src/app/batch/auto-reserved-new/auto-reserve.const';
 import { getTimeZone, GET_LIMIT_DAY } from '@/src/app/batch/auto-reserved-new/auto-reserve.util';
-
-type Court = { name: string; value: string };
+import { Court } from '@/src/app/batch/auto-reserved-new/auto-reserve.type';
 
 const reserveCourt = async (
   page: Page,
@@ -51,7 +51,10 @@ const reserveCourt = async (
     ]);
     const applyConf = await page.$$('#apply');
     if (applyConf.length > 0) {
-      const retryTarget = emptyCourt.name === '井の頭恩賜公園' || emptyCourt.name === '野川公園';
+      const retryTarget =
+        emptyCourt.name === '井の頭恩賜公園' ||
+        emptyCourt.name === '野川公園' ||
+        emptyCourt.name === '武蔵野中央公園';
       if (retryTarget) {
         msg += '\n重複してるのでリトライ';
         await logout(page);
@@ -120,6 +123,27 @@ const reserveCourtController = async (
 /**
  * @package
  */
+export const shouldReserve = async (
+  year: number,
+  month: number,
+  getDay: number,
+  fromTime: string
+) => {
+  const targetDay = dayjs(`${year}-${month}-${getDay}`);
+  const targetDayGetCourtCount = await findGetCourtByDate(year, month, getDay);
+  console.log('targetDayGetCourtCount: ', targetDayGetCourtCount);
+
+  const result =
+    DESIRED_RESERVATION_DATE_LIST.includes(getDay) ||
+    targetDayGetCourtCount === 0 ||
+    fromTime === '9';
+
+  return targetDay.isAfter(GET_LIMIT_DAY()) && result;
+};
+
+/**
+ * @package
+ */
 export const checkAndReserveAvailableCourt = async (
   page: Page,
   msg: string,
@@ -131,9 +155,7 @@ export const checkAndReserveAvailableCourt = async (
   emptyCourt: Court,
   retry: boolean
 ) => {
-  const targetDay = dayjs(`${year}-${month}-${getDay}`);
-
-  if (targetDay.isAfter(GET_LIMIT_DAY())) {
+  if (await shouldReserve(year, month, getDay, fromTime)) {
     msg = await reserveCourtController(
       page,
       msg,

@@ -1,6 +1,5 @@
-/**
- * @package
- */
+import { Court } from '@/src/app/batch/auto-reserved-new/auto-reserve.type';
+
 export const TARGET_COURT = [
   {
     name: '井の頭恩賜公園',
@@ -22,28 +21,17 @@ export const TARGET_COURT = [
     name: '武蔵野中央公園',
     value: '1230',
   },
-];
-/**
- * @package
- */
+] as const satisfies Court[];
+
 export const EXCLUDE_DAY_LIST: number[] = [];
-/**
- * @package
- */
+
+export const DESIRED_RESERVATION_DATE_LIST: number[] = [];
+
 export const USER_ID = '10002097';
-/**
- * @package
- */
 export const PASSWD = 'Ryouma2518';
 
 // export const USER_ID = '10003974';
 // export const PASSWD = 'Cycling0818@';
 
-/**
- * @package
- */
 export const RETRY_USER_ID = '10001498';
-/**
- * @package
- */
 export const RETRY_PASSWD = 'hagayuk01!';

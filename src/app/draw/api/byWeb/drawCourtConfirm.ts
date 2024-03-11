@@ -81,6 +81,7 @@ export const drawCourtConfirm = async () => {
     const nextMonthYear = month === 12 ? currentDate().year() + 1 : currentDate().year();
     const nextMonth = month === 12 ? 1 : month + 1;
     for (let i = 0; i < getNumber; i++) {
+      // TODO 予約者番号も入るようにする
       await createGetCourt({
         card_id,
         year: nextMonthYear,
@@ -90,6 +91,7 @@ export const drawCourtConfirm = async () => {
         to_time,
         court,
         public_flg: true,
+        reserve_no: '',
       });
     }
     msg += getNumber && `${user_nm}\n${day}日 ${from_time}-${to_time}\n${court}${getNumber}件\n`;

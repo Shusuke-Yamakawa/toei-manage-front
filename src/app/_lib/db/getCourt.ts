@@ -188,3 +188,12 @@ export const findGetCourtByDateAndHoldFlg = async ({
       card: true,
     },
   });
+
+export const findGetCourtByDate = async (year: number, month: number, day: number) =>
+  prisma.getCourt.count({
+    where: {
+      year,
+      month,
+      day,
+    },
+  });
