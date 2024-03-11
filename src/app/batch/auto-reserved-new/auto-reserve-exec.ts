@@ -16,6 +16,31 @@ import {
 import { getTimeZone, GET_LIMIT_DAY } from '@/src/app/batch/auto-reserved-new/auto-reserve.util';
 import { Court } from '@/src/app/batch/auto-reserved-new/auto-reserve.type';
 
+const submitApplication = async (page: Page) => {
+  await Promise.all([
+    // 画面遷移まで待機する
+    page.waitForNavigation(),
+    page.click('#apply'), // 予約申し込み
+  ]);
+  // reCAPTCHAがあるかどうかをチェック
+  const isRecaptchaVisible = await page.evaluate(
+    () =>
+      // ここにreCAPTCHAのチェックを行うコードを追加
+      // 例えば、reCAPTCHAのiframeが存在するかどうかを確認
+      document.querySelector('iframe[src*="recaptcha"]') !== null
+  );
+
+  if (isRecaptchaVisible) {
+    console.log('solveRecaptchasが火をふくぞ');
+    // reCAPTCHAを解決
+    await page.solveRecaptchas();
+    console.log('solveRecaptchasがやった');
+
+    // 再度submitApplicationを呼び出す（必要な処理に応じて）
+    await submitApplication(page); // 再帰的に呼び出し、必要に応じてループの条件を調整してください
+  }
+};
+
 const reserveCourt = async (
   page: Page,
   msg: string,
@@ -42,14 +67,8 @@ const reserveCourt = async (
     page.click('#btn-go'),
   ]);
   try {
-    // const courtName = await page.$eval('#bnamem', (item) => item.textContent);
-    // const toTimeWeb = await page.$eval('#etimeLabel', (element) => element.textContent);
-    await Promise.all([
-      // 画面遷移まで待機する
-      page.waitForNavigation(),
-      page.click('#apply'),
-    ]);
-    const applyConf = await page.$$('#apply');
+    await submitApplication(page);
+    const applyConf = await page.$$('#apply'); // 予約ができているかの確認
     if (applyConf.length > 0) {
       const retryTarget =
         emptyCourt.name === '井の頭恩賜公園' ||
@@ -121,6 +140,7 @@ const reserveCourtController = async (
 };
 
 /**
+ * testのためにexport
  * @package
  */
 export const shouldReserve = async (

@@ -9,6 +9,7 @@ import {
   getTimeZone,
   NOTIFY_OPEN_COURT,
 } from '@/src/app/batch/auto-reserved-new/auto-reserve.util';
+import { Court } from '@/src/app/batch/auto-reserved-new/auto-reserve.type';
 
 /**
  * @package
@@ -94,7 +95,7 @@ export const searchByTargetDay = async (
       await Promise.all([
         // 画面遷移まで待機する
         page.waitForNavigation(),
-        page.click('#nav-home'), // 不要になる気がする
+        page.click('#nav-home'), // ループがなくなれば不要になるか
       ]);
     }
     await Promise.all([
@@ -103,5 +104,5 @@ export const searchByTargetDay = async (
       page.click('#nav-home'),
     ]);
   }
-  return { msg, getDay: 0, emptyCourt: { name: '', value: '' } };
+  return { msg, getDay: 0, emptyCourt: { name: '', value: '' } as Court };
 };

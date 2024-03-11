@@ -11,6 +11,7 @@ export async function GET(request: Request) {
     slowMo: 20,
     devtools: true,
   });
+  // const { page, browser } = await toeiPageNew();
   const { searchParams } = new URL(request.url);
   const fromTime = searchParams.get('from');
   const toTime = searchParams.get('to');
