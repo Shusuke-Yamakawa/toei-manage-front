@@ -74,7 +74,8 @@ const reserveCourt = async (
         emptyCourt.name === '井の頭恩賜公園' ||
         emptyCourt.name === '野川公園' ||
         emptyCourt.name === '武蔵野中央公園';
-      if (retryTarget) {
+      // 無限ループにならないようにする
+      if (retryTarget && msg.indexOf('重複してるのでリトライ') === -1) {
         msg += '\n重複してるのでリトライ';
         await logout(page);
         // eslint-disable-next-line @typescript-eslint/no-use-before-define
