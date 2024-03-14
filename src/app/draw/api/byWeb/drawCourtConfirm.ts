@@ -91,7 +91,8 @@ export const drawCourtConfirm = async () => {
     const nextMonthYear = month === 12 ? currentDate().year() + 1 : currentDate().year();
     const nextMonth = month === 12 ? 1 : month + 1;
     for (let i = 0; i < getNumber; i++) {
-      // TODO 予約者番号も入るようにする
+      const reserveNoElements = await page.$x('//*[@id="rsvacceptlist"]/tbody/tr/td[1]/a');
+      const reserveNo = await page.evaluate((element) => element.textContent, reserveNoElements[0]);
       await createGetCourt({
         card_id,
         year: nextMonthYear,
@@ -101,7 +102,7 @@ export const drawCourtConfirm = async () => {
         to_time,
         court,
         public_flg: true,
-        reserve_no: '',
+        reserve_no: reserveNo!,
       });
     }
     msg += getNumber
