@@ -65,7 +65,7 @@ export const drawCourtConfirm = async () => {
     devtools: true,
   });
 
-  let msg = '【抽選確定】\n';
+  let msg = '\n【抽選確定】\n';
   const drawTarget = await findDrawNextMonthCourt(false);
   const processedCardIds: Record<string, boolean> = {};
   for (const draw of drawTarget) {
@@ -104,7 +104,9 @@ export const drawCourtConfirm = async () => {
         reserve_no: '',
       });
     }
-    msg += getNumber && `${user_nm}\n${day}日 ${from_time}-${to_time}\n${court}${getNumber}件\n`;
+    msg += getNumber
+      ? `\n${user_nm}\n${day}日 ${from_time}-${to_time}\n${court}${getNumber}件\n`
+      : '';
     await logout(page);
     processedCardIds[card_id] = true;
   }
