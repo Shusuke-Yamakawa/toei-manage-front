@@ -1,4 +1,5 @@
 import { getCourt } from '@/src/app/court/api/byWeb/getCourt';
+import { getCourtNew } from '@/src/app/court/api/byWeb/getCourt-new';
 
 export const dynamic = 'force-dynamic';
 
