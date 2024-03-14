@@ -65,6 +65,7 @@ export const findGetCourtById = async (id: number) =>
       id,
     },
     include: {
+      card: true,
       entries: true, // 関連するentryも取得する
     },
   });

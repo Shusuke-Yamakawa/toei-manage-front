@@ -1,4 +1,5 @@
 import { deleteCourt } from '@/src/app/court/api/byWeb/deleteCourt';
+import { deleteCourtNew } from '@/src/app/court/api/byWeb/deleteCourt-new';
 
 export const dynamic = 'force-dynamic';
 
