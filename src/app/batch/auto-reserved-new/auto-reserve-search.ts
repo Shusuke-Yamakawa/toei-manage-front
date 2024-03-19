@@ -82,7 +82,7 @@ export const searchByTargetDay = async (
   console.log('targetDayListFilterd: ', targetDayListFiltered);
   for (const court of TARGET_COURT) {
     // ループじゃなくて良いかもしれない targetDayListを渡すだけでいいかも
-    for (const day of targetDayList) {
+    for (const day of targetDayListFiltered) {
       console.log('day: ', day);
       const isOpenCourt = await searchOpenCourt(page, fromTime, year, month, day, court.value);
       console.log('isOpenCourt: ', isOpenCourt);
