@@ -3,7 +3,8 @@ import { Page } from 'puppeteer';
 import { zeroPad, getHolidays } from '@/src/app/_utils/date';
 import {
   EXCLUDE_DAY_LIST,
-  TARGET_COURT,
+  TARGET_COURT_MAIN,
+  TARGET_COURT_SUB,
 } from '@/src/app/batch/auto-reserved-new/auto-reserve.const';
 import {
   getTimeZone,
@@ -71,7 +72,8 @@ export const searchByTargetDay = async (
   page: Page,
   fromTime: string,
   year: number,
-  month: number
+  month: number,
+  courtType: string
 ) => {
   const targetDayList = getHolidays(year, month, NOTIFY_OPEN_COURT());
   // テスト用に追加する日付
@@ -79,8 +81,8 @@ export const searchByTargetDay = async (
   let msg = '';
   const targetDayListFiltered = targetDayList.filter((day) => !EXCLUDE_DAY_LIST.includes(day));
   // console.log('targetDayListFilterd: ', targetDayListFiltered);
+  const TARGET_COURT = courtType === 'main' ? TARGET_COURT_MAIN : TARGET_COURT_SUB;
   for (const court of TARGET_COURT) {
-    // ループじゃなくて良いかもしれない targetDayListを渡すだけでいいかも
     for (const day of targetDayListFiltered) {
       const isOpenCourt = await searchOpenCourt(page, fromTime, year, month, day, court.value);
       if (isOpenCourt) {

@@ -1,26 +1,29 @@
 import { Court } from '@/src/app/batch/auto-reserved-new/auto-reserve.type';
 
-export const TARGET_COURT = [
-  // {
-  //   name: '井の頭恩賜公園',
-  //   value: '1220',
-  // },
+export const TARGET_COURT_MAIN = [
   {
     name: '野川公園',
     value: '1260',
   },
-  // {
-  //   name: '小金井公園',
-  //   value: '1240',
-  // },
+] as const satisfies Court[];
+
+export const TARGET_COURT_SUB = [
+  {
+    name: '井の頭恩賜公園',
+    value: '1220',
+  },
+  {
+    name: '小金井公園',
+    value: '1240',
+  },
   {
     name: '府中の森公園',
     value: '1270',
   },
-  // {
-  //   name: '武蔵野中央公園',
-  //   value: '1230',
-  // },
+  {
+    name: '武蔵野中央公園',
+    value: '1230',
+  },
 ] as const satisfies Court[];
 
 export const EXCLUDE_DAY_LIST: number[] = [6, 7];

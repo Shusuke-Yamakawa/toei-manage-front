@@ -15,16 +15,17 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const fromTime = searchParams.get('from');
   const toTime = searchParams.get('to');
+  const courtType = searchParams.get('court')!;
   const date = currentDate();
   const year = date.year();
   const month = date.month() + 1; // month()の結果は0から始まるため、1を追加します
   const day = date.date();
-  let msg = `今月${fromTime}-${toTime}時の空きテニスコート`;
+  let msg = `今月${fromTime}-${toTime}時の${courtType}テニスコート`;
   const {
     msg: searchMsg,
     getDay,
     emptyCourt,
-  } = await searchByTargetDay(page, fromTime!, year, month);
+  } = await searchByTargetDay(page, fromTime!, year, month, courtType);
   msg += searchMsg;
   try {
     // if (msg.indexOf('空きコートあり！！') !== -1) {
@@ -48,7 +49,7 @@ export async function GET(request: Request) {
         msg: searchMsgNext,
         getDay: getDayNext,
         emptyCourt: emptyCourtNext,
-      } = await searchByTargetDay(page, fromTime!, nextMonthYear, nextMonth);
+      } = await searchByTargetDay(page, fromTime!, nextMonthYear, nextMonth, courtType);
       msg += searchMsgNext;
       if (searchMsgNext.indexOf('空きコートあり！！') !== -1) {
         msg = await checkAndReserveAvailableCourt(
