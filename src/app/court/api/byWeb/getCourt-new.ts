@@ -14,14 +14,12 @@ export const dynamic = 'force-dynamic';
 const getCourtInfo = async (page: Page) => {
   const courtInfo = await getCourtInfoWeb(page);
   console.log('courtInfo: ', courtInfo);
-  const msg = courtInfo
-    .map((info) => {
-      const useDateFormatted = info.useDate.split('\n')[0];
-      const timeFormatted = info.time.split('～')[0].trim().slice(0, 2);
-      const facilityFormatted = info.facility.split('\n')[0].trim();
-      return `\n${useDateFormatted}${timeFormatted}@${facilityFormatted}`;
-    })
-    .join('\n');
+  const msg = courtInfo.map((info) => {
+    const useDateFormatted = info.useDate.split('\n')[0];
+    const timeFormatted = info.time.split('～')[0].trim().slice(0, 2);
+    const facilityFormatted = info.facility.split('\n')[0].trim();
+    return `\n${useDateFormatted}${timeFormatted}@${facilityFormatted}`;
+  });
   return msg;
 };
 
@@ -38,19 +36,6 @@ export const getCourtNew = async () => {
     const card = await findCardById(user.id);
     msg += `\n${card?.user_nm}`;
     msg += await getCourtInfo(page);
-    // while (true) {
-    //   try {
-    //     await Promise.all([
-    //       // 画面遷移まで待機する
-    //       page.waitForNavigation(),
-    //       page.click('#goNextPager'),
-    //     ]);
-    //     msg += await getCourtInfo(page);
-    //   } catch (NoSuchElementException) {
-    //     // 次のページが押せなくなったらループから抜ける
-    //     break;
-    //   }
-    // }
     await logout(page);
   }
   await browser.close();
