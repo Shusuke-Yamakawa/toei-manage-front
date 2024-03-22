@@ -41,6 +41,7 @@ export const searchOpenCourt = async (
     page.click('#btn-go'),
   ]);
   const timeZone = getTimeZone(fromTime);
+  await page.waitForXPath(`//*[@id='${yearStr}${monthStr}${dayStr}_${timeZone}']/div/img`);
   // ここで空きコート一覧が出るなら、日付ループはしない。
   const altText = await page.evaluate(
     // eslint-disable-next-line @typescript-eslint/no-shadow

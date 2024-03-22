@@ -15,6 +15,7 @@ import {
 } from '@/src/app/batch/auto-reserved-new/auto-reserve.const';
 import { getTimeZone, GET_LIMIT_DAY } from '@/src/app/batch/auto-reserved-new/auto-reserve.util';
 import { Court } from '@/src/app/batch/auto-reserved-new/auto-reserve.type';
+import { sleep } from '@/src/app/_utils/util';
 
 const submitApplication = async (page: Page) => {
   let cancelDialog = false;
@@ -81,6 +82,7 @@ const reserveCourt = async (
   await page.waitForXPath(xpath);
   const elements = (await page.$x(xpath)) as any;
   await elements[0].click();
+  await sleep(100);
   await Promise.all([
     // 画面遷移まで待機する
     page.waitForNavigation(),

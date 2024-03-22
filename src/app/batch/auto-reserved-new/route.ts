@@ -21,12 +21,12 @@ export async function GET(request: Request) {
   const month = date.month() + 1; // month()の結果は0から始まるため、1を追加します
   const day = date.date();
   let msg = `今月${fromTime}-${toTime}時の${courtType}テニスコート`;
-  const {
-    msg: searchMsg,
-    getDay,
-    emptyCourt,
-  } = await searchByTargetDay(page, fromTime!, year, month, courtType);
-  msg += searchMsg;
+  // const {
+  //   msg: searchMsg,
+  //   getDay,
+  //   emptyCourt,
+  // } = await searchByTargetDay(page, fromTime!, year, month, courtType);
+  // msg += searchMsg;
   try {
     // if (msg.indexOf('空きコートあり！！') !== -1) {
     //   msg = await checkAndReserveAvailableCourt(
