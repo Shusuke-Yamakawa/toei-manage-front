@@ -1,21 +1,19 @@
 /* eslint-disable @typescript-eslint/no-loop-func */
 /* eslint-disable no-restricted-syntax */
 import { Page } from 'puppeteer';
-import { toeiPage, toeiPageNew } from '@/src/app/_lib/puppeteer';
-import { login } from '@/src/app/_utils/login';
+import { toeiPageNew } from '@/src/app/_lib/puppeteer';
 import {
   GetCourt,
   GetCourtIncludeEntry,
   deleteGetCourtById,
   findGetCourtById,
 } from '@/src/app/_lib/db/getCourt';
-import { findCardById } from '@/src/app/_lib/db/card';
 import { notify_line } from '@/src/app/_utils/line';
-import { deleteEntryByIds } from '@/src/app/_lib/db/entry';
 import { deleteGuestByIds, findGuestByCourtId } from '@/src/app/_lib/db/guest';
 import { currentDate, getTargetDay } from '@/src/app/_utils/date';
 import { loginNew, logout } from '@/src/app/_utils/loginNew';
 import { getCourtInfoWeb } from '@/src/app/court/api/byWeb/getCourt-info';
+import { deleteEntryByIds } from '@/src/app/_lib/db/entry';
 
 export const dynamic = 'force-dynamic';
 
@@ -50,9 +48,9 @@ const getCourtCancel = async (
   if (matchingIndex !== -1) {
     console.log('一致したのでキャンセルします');
     // ダイアログでOKの処理はダイアログが出る直前に記述
-    // page.once('dialog', async (dialog) => {
-    //   await dialog.accept();
-    // });
+    page.once('dialog', async (dialog) => {
+      await dialog.accept();
+    });
     await Promise.all([
       // 画面遷移まで待機する
       page.waitForNavigation(),
@@ -62,25 +60,25 @@ const getCourtCancel = async (
     ]);
     console.log('キャンセル完了');
     await notify_line(`【キャンセル完了】\n ${getCourtDbKey}`);
-    // await deleteGuestByIds(guestIds);
-    // await deleteEntryByIds(entryIds);
-    // await deleteGetCourtById({ id });
+    await deleteGuestByIds(guestIds);
+    await deleteEntryByIds(entryIds);
+    await deleteGetCourtById({ id });
     return true;
   }
   console.log(`一致するコートがなかった\nレコードは除去します${getCourtDbKey}`);
-  // await deleteGuestByIds(guestIds);
-  // await deleteEntryByIds(entryIds);
-  // await deleteGetCourtById({ id });
+  await deleteGuestByIds(guestIds);
+  await deleteEntryByIds(entryIds);
+  await deleteGetCourtById({ id });
   return false;
 };
 
 export const deleteCourtNew = async (id: number) => {
-  // const { page, browser } = await toeiPageNew();
-  const { page, browser } = await toeiPageNew({
-    headless: false,
-    slowMo: 20,
-    devtools: true,
-  });
+  const { page, browser } = await toeiPageNew();
+  // const { page, browser } = await toeiPageNew({
+  //   headless: false,
+  //   slowMo: 20,
+  //   devtools: true,
+  // });
   const getCourt = await findGetCourtById(id);
   const { year, month, day } = getCourt!;
   const targetDate = getTargetDay(year, month, day);
@@ -93,22 +91,6 @@ export const deleteCourtNew = async (id: number) => {
   await loginNew(page, card.card_id, card.password);
   let result = false;
   result = await getCourtCancel(page, getCourt!, id);
-
-  // if (!result) {
-  //   while (true) {
-  //     try {
-  //       await Promise.all([
-  //         // 画面遷移まで待機する
-  //         page.waitForNavigation(),
-  //         page.click('#goNextPager'),
-  //       ]);
-  //       result = await getCourtCancel(page, getCourt!, id);
-  //     } catch (NoSuchElementException) {
-  //       // 次のページが押せなくなったらループから抜ける
-  //       break;
-  //     }
-  //   }
-  // }
 
   await logout(page);
 
