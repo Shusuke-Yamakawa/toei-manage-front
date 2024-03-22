@@ -42,7 +42,7 @@ export async function GET(request: Request) {
     //   );
     // }
     if (day > 21) {
-      msg += `来月${fromTime}-${toTime}時の空きテニスコート`;
+      msg += `来月${fromTime}-${toTime}時の${courtType}テニスコート`;
       const nextMonthYear = month === 12 ? year + 1 : year;
       const nextMonth = month === 12 ? 1 : month + 1;
       const {
