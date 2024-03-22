@@ -26,7 +26,7 @@ export const TARGET_COURT_SUB = [
   },
 ] as const satisfies Court[];
 
-export const EXCLUDE_DAY_LIST: number[] = [6, 7];
+export const EXCLUDE_DAY_LIST: number[] = [6, 7, 20];
 
 export const DESIRED_RESERVATION_DATE_LIST: number[] = [];
 

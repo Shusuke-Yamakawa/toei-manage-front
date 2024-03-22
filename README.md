@@ -3,10 +3,14 @@
 crontab -e で以下のように記載すれば良い
 
 ```
-* * * * * curl "http://localhost:3003/batch/auto-reserved?from=9&to=11"
-* * * * * curl "http://localhost:3003/batch/auto-reserved?from=11&to=13"
-* * * * * curl "http://localhost:3003/batch/auto-reserved?from=13&to=15"
-* * * * * curl "http://localhost:3003/batch/auto-reserved?from=15&to=17"
+* * * * * curl "http://localhost:3003/batch/auto-reserved-new?from=9&to=11&court=main"
+* * * * * curl "http://localhost:3003/batch/auto-reserved-new?from=11&to=13&court=main"
+* * * * * curl "http://localhost:3003/batch/auto-reserved-new?from=13&to=15&court=main"
+* * * * * curl "http://localhost:3003/batch/auto-reserved-new?from=15&to=17&court=main"
+#* * * * * curl "http://localhost:3003/batch/auto-reserved-new?from=9&to=11&court=sub"
+#* * * * * curl "http://localhost:3003/batch/auto-reserved-new?from=11&to=13&court=sub"
+#* * * * * curl "http://localhost:3003/batch/auto-reserved-new?from=13&to=15&court=sub"
+#* * * * * curl "http://localhost:3003/batch/auto-reserved-new?from=15&to=17&court=sub"
 */3 * * * * curl "http://localhost:3003/batch/auto-reserved-mitaka"
 0 21 * * * curl "http://localhost:3003/batch/warning-cancel?day=5"
 30 9 * * * curl "http://localhost:3003/batch/warning-cancel?day=4"
