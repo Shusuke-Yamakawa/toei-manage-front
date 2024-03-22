@@ -61,8 +61,7 @@ export const searchOpenCourt = async (
     dayStr,
     timeZone
   );
-  console.log('altText: ', altText);
-  return altText === '休館日'; // ここは変える そのまま予約しても良いかも
+  return altText === '空き';
 };
 
 /**
@@ -76,16 +75,14 @@ export const searchByTargetDay = async (
 ) => {
   const targetDayList = getHolidays(year, month, NOTIFY_OPEN_COURT());
   // テスト用に追加する日付
-  // targetDayList.unshift(26);
+  // targetDayList.unshift(12);
   let msg = '';
   const targetDayListFiltered = targetDayList.filter((day) => !EXCLUDE_DAY_LIST.includes(day));
-  console.log('targetDayListFilterd: ', targetDayListFiltered);
+  // console.log('targetDayListFilterd: ', targetDayListFiltered);
   for (const court of TARGET_COURT) {
     // ループじゃなくて良いかもしれない targetDayListを渡すだけでいいかも
     for (const day of targetDayListFiltered) {
-      console.log('day: ', day);
       const isOpenCourt = await searchOpenCourt(page, fromTime, year, month, day, court.value);
-      console.log('isOpenCourt: ', isOpenCourt);
       if (isOpenCourt) {
         const weekElements = await page.$x('//*[@id="head_d1_s0_0"]');
         const week = await page.evaluate((element) => element.textContent, weekElements[0]);

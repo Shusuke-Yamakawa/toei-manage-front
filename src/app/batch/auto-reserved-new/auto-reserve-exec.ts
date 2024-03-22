@@ -1,6 +1,6 @@
 /* eslint-disable no-param-reassign */
 import dayjs from 'dayjs';
-import { Page } from 'puppeteer';
+import { Dialog, Page } from 'puppeteer';
 import { createGetCourt, findGetCourtByDate } from '@/src/app/_lib/db/getCourt';
 import { zeroPad } from '@/src/app/_utils/date';
 import { notify_line } from '@/src/app/_utils/line';
@@ -17,11 +17,30 @@ import { getTimeZone, GET_LIMIT_DAY } from '@/src/app/batch/auto-reserved-new/au
 import { Court } from '@/src/app/batch/auto-reserved-new/auto-reserve.type';
 
 const submitApplication = async (page: Page) => {
+  let cancelDialog = false;
+  await page.type('#peoples0', '4');
+  // 複数件予約エラーのダイアログにも対応
+  const handleSecondDialog = async (dialog: Dialog) => {
+    console.log(`Dialog message: "${dialog.message()}"`);
+    cancelDialog = true;
+    await dialog.accept();
+  };
+  const handleFirstDialog = async (dialog: Dialog) => {
+    console.log(`Dialog message: "${dialog.message()}"`);
+    await dialog.accept();
+    // 最初のダイアログが処理された後に、次のダイアログ用のリスナーを設定
+    page.once('dialog', handleSecondDialog);
+  };
+  page.once('dialog', handleFirstDialog); // ダイアログのリスナーが重複しないようにonceを活用する
   await Promise.all([
     // 画面遷移まで待機する
     page.waitForNavigation(),
-    page.click('#apply'), // 予約申し込み
+    page.click('#btn-go'), // 予約申し込み
   ]);
+  if (cancelDialog) {
+    console.log('複数面予約エラーが出たため、処理を中断します。');
+    return; // 特定のダイアログが出た場合はここで関数の実行を停止
+  }
   // reCAPTCHAがあるかどうかをチェック
   const isRecaptchaVisible = await page.evaluate(
     () =>
@@ -30,12 +49,13 @@ const submitApplication = async (page: Page) => {
       document.querySelector('iframe[src*="recaptcha"]') !== null
   );
 
-  if (isRecaptchaVisible) {
+  let retryCount = 0;
+  if (retryCount === 0 && isRecaptchaVisible) {
     console.log('solveRecaptchasが火をふくぞ');
     // reCAPTCHAを解決
     await page.solveRecaptchas();
     console.log('solveRecaptchasがやった');
-
+    retryCount += 1;
     // 再度submitApplicationを呼び出す（必要な処理に応じて）
     await submitApplication(page); // 再帰的に呼び出し、必要に応じてループの条件を調整してください
   }
@@ -68,18 +88,19 @@ const reserveCourt = async (
   ]);
   try {
     await submitApplication(page);
-    const applyConf = await page.$$('#apply'); // 予約ができているかの確認
-    if (applyConf.length > 0) {
+    const buttonText = await page.$eval('#btn-go', (element) => element.textContent);
+    if (buttonText!.trim() !== 'オンライン支払いへ') {
       const retryTarget =
         emptyCourt.name === '井の頭恩賜公園' ||
         emptyCourt.name === '野川公園' ||
         emptyCourt.name === '武蔵野中央公園';
       // 無限ループにならないようにする
       if (retryTarget && msg.indexOf('重複してるのでリトライ') === -1) {
+        console.log('重複してるのでリトライ');
         msg += '\n重複してるのでリトライ';
         await logout(page);
         // eslint-disable-next-line @typescript-eslint/no-use-before-define
-        msg = await reserveCourtController(
+        return await reserveCourtController(
           page,
           msg,
           fromTime,
@@ -94,8 +115,22 @@ const reserveCourt = async (
       return msg;
     }
     msg += `\n${emptyCourt.name}を予約`;
+    // 予約番号の値を取得
+    const reserveNo = await page.evaluate(() => {
+      // テーブル内のすべての行を取得
+      const rows = Array.from(document.querySelectorAll('.table.sp-table tbody tr'));
+      // 予約番号を含む行を探し、そのテキストを取得
+      // eslint-disable-next-line no-restricted-syntax
+      for (const row of rows) {
+        const th = row.querySelector('th');
+        if (th && th.textContent!.includes('予約番号')) {
+          const td = row.querySelector('td');
+          return td ? td.textContent : null;
+        }
+      }
+      return ''; // 予約番号が見つからなかった場合
+    });
     // DBに登録する
-    // TODO 予約者番号も入るようにする
     await createGetCourt({
       card_id: userId,
       year,
@@ -104,7 +139,7 @@ const reserveCourt = async (
       from_time: Number(fromTime),
       to_time: Number(toTime),
       court: emptyCourt.name,
-      reserve_no: '',
+      reserve_no: reserveNo!,
     });
     return msg;
   } catch (error) {
@@ -135,8 +170,16 @@ const reserveCourtController = async (
   await loginNew(page, userId, password);
   const isOpenCourt = await searchOpenCourt(page, fromTime, year, month, getDay, emptyCourt.value);
   console.log('isOpenCourt: ', isOpenCourt);
-  if (!isOpenCourt) return msg;
+  if (!isOpenCourt) {
+    await logout(page);
+    return msg;
+  }
+  console.log('reserveCourt呼ぶ');
   msg = await reserveCourt(page, msg, fromTime, toTime, year, month, getDay, emptyCourt, userId);
+  console.log('reserveCourt呼んだ');
+  // リトライした場合は２度処理を通るため、一度だけログアウトさせる
+  if (!retry) await logout(page);
+
   return msg;
 };
 
