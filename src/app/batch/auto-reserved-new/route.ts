@@ -20,7 +20,9 @@ export async function GET(request: Request) {
   const year = date.year();
   const month = date.month() + 1; // month()の結果は0から始まるため、1を追加します
   const day = date.date();
-  let msg = `今月${fromTime}-${toTime}時の${courtType}テニスコート`;
+  // let msg = `今月${fromTime}-${toTime}時の${courtType}テニスコート`;
+  let msg = date.format('HH:mm');
+
   // const {
   //   msg: searchMsg,
   //   getDay,
@@ -42,7 +44,7 @@ export async function GET(request: Request) {
     //   );
     // }
     if (day > 21) {
-      msg += `来月${fromTime}-${toTime}時の${courtType}テニスコート`;
+      msg += ` 来月${fromTime}-${toTime}時の${courtType}テニスコート`;
       const nextMonthYear = month === 12 ? year + 1 : year;
       const nextMonth = month === 12 ? 1 : month + 1;
       const {
@@ -69,6 +71,7 @@ export async function GET(request: Request) {
     console.error('エラーが発生', e);
   } finally {
     console.log('最終メッセージ', msg);
+    await page.close();
     await browser.close();
   }
   return new Response(JSON.stringify({ message: msg }), {
