@@ -175,6 +175,7 @@ const reserveCourtController = async (
   console.log('isOpenCourt: ', isOpenCourt);
   if (!isOpenCourt) {
     await logout(page);
+    msg += '\n取られちゃった';
     return msg;
   }
   console.log('reserveCourt呼ぶ');
