@@ -97,24 +97,25 @@ const reserveCourt = async (
         emptyCourt.name === '野川公園' ||
         emptyCourt.name === '武蔵野中央公園';
       // 無限ループにならないようにする
-      if (retryTarget && msg.indexOf('重複してるのでリトライ') === -1) {
-        console.log('重複してるのでリトライ');
-        msg += '\n重複してるのでリトライ';
-        await logout(page);
-        // eslint-disable-next-line @typescript-eslint/no-use-before-define
-        return await reserveCourtController(
-          page,
-          msg,
-          fromTime,
-          toTime,
-          year,
-          month,
-          getDay,
-          emptyCourt,
-          true
-        );
+      if (!retryTarget || msg.indexOf('重複してるのでリトライ') !== -1) {
+        msg += '\n重複してるがリトライしない';
+        return msg;
       }
-      return msg;
+      console.log('重複してるのでリトライ');
+      msg += '\n重複してるのでリトライ';
+      await logout(page);
+      // eslint-disable-next-line @typescript-eslint/no-use-before-define
+      return await reserveCourtController(
+        page,
+        msg,
+        fromTime,
+        toTime,
+        year,
+        month,
+        getDay,
+        emptyCourt,
+        true
+      );
     }
     msg += `\n${emptyCourt.name}を予約`;
     // 予約番号の値を取得
@@ -233,6 +234,8 @@ export const checkAndReserveAvailableCourt = async (
       emptyCourt,
       retry
     );
+  } else {
+    msg += '\n欲張りはしません';
   }
   await notify_line(msg, 'Qeuzd60OWvkoG0ZbctkpkkWFb9fUmYJYcTDBujxypsV');
   return msg;
