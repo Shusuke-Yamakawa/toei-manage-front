@@ -26,7 +26,7 @@ export const TARGET_COURT_SUB = [
   // },
 ] as const satisfies Court[];
 
-export const EXCLUDE_DAY_LIST: number[] = [];
+export const EXCLUDE_DAY_LIST: number[] = [6, 7];
 
 export const DESIRED_RESERVATION_DATE_LIST: number[] = [];
 
@@ -41,8 +41,8 @@ export const DESIRED_RESERVATION_DATE_LIST: number[] = [];
 // 10003974 Cycling0818@
 // 10004678 4uFgP7JZLg kuma
 
-export const USER_ID = '10002865';
-export const PASSWD = 'I-am-always-hangover';
+export const USER_ID = '10004025';
+export const PASSWD = 'wiHpar-joxrym-xazqy9';
 
 export const RETRY_USER_ID = '10001498';
 export const RETRY_PASSWD = 'hagayuk01!';

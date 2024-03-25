@@ -82,7 +82,7 @@ const reserveCourt = async (
   await page.waitForXPath(xpath);
   const elements = (await page.$x(xpath)) as any;
   await elements[0].click();
-  await sleep(100);
+  await sleep(300);
   await Promise.all([
     // 画面遷移まで待機する
     page.waitForNavigation(),
@@ -179,7 +179,13 @@ const reserveCourtController = async (
     return msg;
   }
   console.log('reserveCourt呼ぶ');
-  msg = await reserveCourt(page, msg, fromTime, toTime, year, month, getDay, emptyCourt, userId);
+  try {
+    msg = await reserveCourt(page, msg, fromTime, toTime, year, month, getDay, emptyCourt, userId);
+  } catch (e) {
+    console.error('reserveCourtでエラー', e);
+    msg += '\nreserveCourtでエラー';
+    notify_line(msg);
+  }
   console.log('reserveCourt呼んだ');
   // リトライした場合は２度処理を通るため、一度だけログアウトさせる
   if (!retry) await logout(page);
