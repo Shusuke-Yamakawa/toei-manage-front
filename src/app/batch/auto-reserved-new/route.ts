@@ -20,29 +20,29 @@ export async function GET(request: Request) {
   const year = date.year();
   const month = date.month() + 1; // month()の結果は0から始まるため、1を追加します
   const day = date.date();
-  // let msg = `今月${fromTime}-${toTime}時の${courtType}テニスコート`;
-  let msg = date.format('HH:mm');
+  let msg = `${date.format('HH:mm')} 今月${fromTime}-${toTime}時の${courtType}テニスコート`;
+  // let msg = date.format('HH:mm');
 
-  // const {
-  //   msg: searchMsg,
-  //   getDay,
-  //   emptyCourt,
-  // } = await searchByTargetDay(page, fromTime!, year, month, courtType);
-  // msg += searchMsg;
+  const {
+    msg: searchMsg,
+    getDay,
+    emptyCourt,
+  } = await searchByTargetDay(page, fromTime!, year, month, courtType);
+  msg += searchMsg;
   try {
-    // if (msg.indexOf('空きコートあり！！') !== -1) {
-    //   msg = await checkAndReserveAvailableCourt(
-    //     page,
-    //     msg,
-    //     fromTime!,
-    //     toTime!,
-    //     year,
-    //     month,
-    //     getDay,
-    //     emptyCourt,
-    //     false
-    //   );
-    // }
+    if (msg.indexOf('空きコートあり！！') !== -1) {
+      msg = await checkAndReserveAvailableCourt(
+        page,
+        msg,
+        fromTime!,
+        toTime!,
+        year,
+        month,
+        getDay,
+        emptyCourt,
+        false
+      );
+    }
     if (day > 21) {
       msg += ` 来月${fromTime}-${toTime}時の${courtType}テニスコート`;
       const nextMonthYear = month === 12 ? year + 1 : year;
@@ -70,10 +70,10 @@ export async function GET(request: Request) {
   } catch (e) {
     console.error('エラーが発生', e);
   } finally {
-    console.log('最終メッセージ', msg);
     await page.close();
     await browser.close();
   }
+  console.log('最終メッセージ', msg);
   return new Response(JSON.stringify({ message: msg }), {
     headers: { 'Content-Type': 'application/json' },
   });
